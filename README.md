@@ -16,3 +16,6 @@ for Android 1.5 (API 3) to Android 5.0.1 (API 21) and download them. This is goi
 it is important to make sure you have all the libraries available to develop successfully. 
 
 Once you are done updating, TO-BE-CONTINUED....
+
+Parse Database Documentation: 
+  https://parse.com/docs/android_guide#objects
