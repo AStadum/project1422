@@ -1,14 +1,20 @@
 package com.addressbook.thorrism.addressbook;
 
+import com.parse.ParseClassName;
+import com.parse.ParseObject;
+
 /**
  * Created by Lucas Crawford on 1/6/2015.
  */
-public class Contact {
+
+@ParseClassName("Contact")
+public class Contact extends ParseObject{
     private String firstName;
     private String lastName;
-    private String number;
     private String address;
-    private String email;
+    private String city;
+    private String state;
+    private int zipcode;
 
 
     /**
@@ -17,9 +23,7 @@ public class Contact {
     public Contact(){
         firstName = "John";
         lastName  = "Doe";
-        number    = "867-5309";
         address   = "1337 13th st.";
-        email     = "lol@gmail.com";
     }
 
     /**
@@ -41,14 +45,6 @@ public class Contact {
         this.lastName = lastName;
     }
 
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
     public String getAddress() {
         return address;
     }
@@ -57,12 +53,28 @@ public class Contact {
         this.address = address;
     }
 
-    public String getEmail() {
-        return email;
+    public int getZipcode() {
+        return zipcode;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setZipcode(int zipcode) {
+        this.zipcode = zipcode;
+    }
+
+    public String getCity() {
+        return city;
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 
 }

@@ -37,7 +37,9 @@ public class HomeScreen extends Activity {
 
        //Instantiate the database, creates a new one if one doesn't already exist
         initDatabase();
-        mDatabaseAdapter.truncateContacts();
+        createToast("Test");
+       // mDatabaseAdapter.truncateContacts();
+        mDatabaseAdapter.testCreate();
         displayDatabase();
 
     }
@@ -74,7 +76,7 @@ public class HomeScreen extends Activity {
     public void displayDatabase(){
         Cursor cursor = mDatabaseAdapter.fetchAll();
 
-        //Columns for each contact
+        //Columns for each contact. Just displays the name for now of each contact
         String[] columns = new String[]{
             mDatabaseAdapter.KEY_NAME,
         };

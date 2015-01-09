@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 import java.sql.SQLException;
 
@@ -19,7 +20,6 @@ public class DatabaseAdapter{
     public static final String KEY_NUMBER   = "number";
     public static final String KEY_ADDRESS  = "address";
     public static final String KEY_EMAIL    = "email";
-
 
     //Database information
     private DatabaseHelper mDbHelper;
@@ -82,16 +82,16 @@ public class DatabaseAdapter{
      * @param contact - a contact created from user input
      * @return long to indicate results of the insert
      */
-    public long createContact(Contact contact){
-        ContentValues values = new ContentValues();
-
-        values.put(KEY_NAME, contact.getFirstName() + " " + contact.getLastName());
-        values.put(KEY_NUMBER, contact.getNumber());
-        values.put(KEY_EMAIL, contact.getEmail());
-        values.put(KEY_ADDRESS, contact.getAddress());
-
-        return mDatabase.insert(TABLE_NAME, null, values);
-    }
+//    public long createContact(Contact contact){
+//        ContentValues values = new ContentValues();
+//
+//        values.put(KEY_NAME, contact.getFirstName() + " " + contact.getLastName());
+//        values.put(KEY_NUMBER, contact.getNumber());
+//
+//        values.put(KEY_ADDRESS, contact.getAddress());
+//
+//        return mDatabase.insert(TABLE_NAME, null, values);
+//    }
 
     /**
      * Fetch all contacts that exist in the database.
@@ -129,14 +129,20 @@ public class DatabaseAdapter{
         return mDatabase.delete(TABLE_NAME, null, null) > 0;
     }
 
-
-    public void testCreate(){
-        for(int i=0; i<10; ++i){
-            Contact contact = new Contact();
-            contact.setFirstName(contact.getFirstName() + " " + Integer.toString(i));
-            createContact(contact);
-        }
-    }
+    /**
+     * Auxiliary test function to see if our database works for inputting a few names only.
+     */
+//    public void testCreate(){
+//        String[] testNames = {"John Doe", "Mary Jane", "Jane Smith", "John Smith", "Theodore Roosevelt",
+//                "Kim Jong Un"};
+//        for(int i=0; i<6; ++i){
+//            Contact contact = new Contact();
+//            String[] name   = testNames[i].split(" ", 2);
+//            contact.setFirstName(name[0]);
+//            contact.setLastName(name[1]);
+//            createContact(contact);
+//        }
+//    }
 
     //ADD UPDATE, DELETE ALL, FETCH-BY-NAME
 }

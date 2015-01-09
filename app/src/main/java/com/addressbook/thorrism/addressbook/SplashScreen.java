@@ -5,9 +5,9 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.widget.Toast;
+
+import com.parse.Parse;
+import com.parse.ParseUser;
 
 
 public class SplashScreen extends Activity {
@@ -19,7 +19,7 @@ public class SplashScreen extends Activity {
         setContentView(R.layout.splash_screen);
         started = false;
 
-        //Run the splash screen, after 2.5 seconds loads home screen
+        Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
         new LoadTask().execute();
     }
 
@@ -34,7 +34,7 @@ public class SplashScreen extends Activity {
         protected Void doInBackground(Void... params){
             try{
                 started = true;
-                Thread.sleep(2500);
+                Thread.sleep(2500); //Load database here instead of sleeping
             }catch(Exception e){
                 Log.e(DroidBook.getInstance().TAG, "Failure to sleep!");
                 e.printStackTrace();
@@ -47,7 +47,15 @@ public class SplashScreen extends Activity {
 
             //Start the home screen activity
             if(started) {
-                startActivity(new Intent(getApplicationContext(), HomeScreen.class));
+                //Check if a user is already logged in, if so go straight to
+                //to the address book screen.
+                ParseUser user = ParseUser.getCurrentUser();
+                if(user == null)
+                    startActivity(new Intent(getApplicationContext(), StartScreen.class));
+                else {
+                    startActivity(new Intent(getApplicationContext(), BookSelectionScreen.class));
+                    DroidBook.getInstance().setUser(user);
+                }
             }
         }
     }

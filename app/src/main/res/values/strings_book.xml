@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">DroidBook</string>
+    <string name="title_activity_book_selection_screen">Select Address book</string>
+    <string name="action_search">Search</string>
+    <string name="action_add">Add New Contact</string>
+    <string name="action_add_book">Add New Address book</string>
+    <string name="login_title">Log In</string>
+    <string name="title_activity_start_screen">StartScreen</string>
+    <string name="empty_books">No Address books Found!</string>
+    <string name="create_book">Create Address book</string>
+    <string name="book_name">Address Book Name</string>
+
+</resources>

@@ -1,0 +1,121 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="org.thorrism.filmstrip.LoginScreen">
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="50dp">
+
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="center">
+
+            <TextView
+                android:id="@+id/loginTitle"
+                android:text="@string/login_title"
+                android:textSize="45sp"
+                android:layout_width="match_parent"
+                android:gravity="center"
+                android:layout_height="wrap_content"
+            />
+
+
+            <EditText
+                android:id="@+id/login_username"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/loginTitle"
+                android:layout_centerHorizontal="true"
+                android:paddingTop="50dp"
+                android:ems="15"
+                android:maxEms="15"
+                android:textStyle="italic"
+                android:inputType="text"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:hint="@string/prompt_username"
+            />
+
+            <TextView
+                android:id="@+id/error_username"
+                android:layout_below="@+id/login_username"
+                android:text=""
+                android:textSize="10sp"
+                android:gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:textColor="#ff0000"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+            />
+
+
+            <EditText
+                android:id="@+id/login_password"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/login_username"
+                android:paddingTop="12dp"
+                android:layout_centerHorizontal="true"
+                android:ems="15"
+                android:maxEms="15"
+                android:textStyle="italic"
+                android:hint="@string/prompt_password"
+                android:imeActionId="@+id/login"
+                android:imeActionLabel="@string/sign_up"
+                android:imeOptions="actionUnspecified"
+                android:inputType="textPassword"
+                android:maxLines="1"
+                android:singleLine="true"/>
+            <TextView
+                android:id="@+id/error_password"
+                android:layout_below="@+id/login_password"
+                android:text=""
+                android:textSize="10sp"
+                android:gravity="center_horizontal"
+                android:layout_marginBottom="10dp"
+                android:textColor="#ff0000"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+        </RelativeLayout>
+    </FrameLayout>
+
+
+    <RelativeLayout
+        android:id="@+id/loginButtonLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center">
+
+        <Button
+            android:id="@+id/login_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:visibility="gone"
+            android:background="@drawable/login_rect"
+            android:text="@string/login_user"
+            android:scaleType="fitCenter"
+            android:textSize="15sp"/>
+
+        <ProgressBar
+            android:id="@+id/loginSpinner"
+            android:indeterminate="true"
+            android:layout_width="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:scaleType="fitCenter"/>
+
+
+
+    </RelativeLayout>
+
+</LinearLayout>
