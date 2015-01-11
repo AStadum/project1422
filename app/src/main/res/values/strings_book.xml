@@ -11,5 +11,7 @@
     <string name="empty_books">No Address books Found!</string>
     <string name="create_book">Create Address book</string>
     <string name="book_name">Address Book Name</string>
+    <string name="book_add_name">Book name: </string>
+    <string name="book_add_hint">Name</string>
 
 </resources>

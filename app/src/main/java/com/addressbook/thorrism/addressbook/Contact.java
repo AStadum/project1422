@@ -9,72 +9,62 @@ import com.parse.ParseObject;
 
 @ParseClassName("Contact")
 public class Contact extends ParseObject{
-    private String firstName;
-    private String lastName;
-    private String address;
-    private String city;
-    private String state;
-    private int zipcode;
-
 
     /**
      * Default constructor
      */
     public Contact(){
-        firstName = "John";
-        lastName  = "Doe";
-        address   = "1337 13th st.";
     }
 
     /**
-     * Getters and setters for all the data fields
+     * Getters and setters for all the data fields.
      */
     public String getFirstName() {
-        return firstName;
+        return getString("firstName");
     }
 
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+        put("firstName", firstName);
     }
 
     public String getLastName() {
-        return lastName;
+        return getString("lastName");
     }
 
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+        put("lastName", lastName);
     }
 
     public String getAddress() {
-        return address;
+        return getString("address");
     }
 
     public void setAddress(String address) {
-        this.address = address;
+        put("address", address);
     }
 
     public int getZipcode() {
-        return zipcode;
+        return getInt("zipcode");
     }
 
     public void setZipcode(int zipcode) {
-        this.zipcode = zipcode;
+        put("zipcode", zipcode);
     }
 
     public String getCity() {
-        return city;
+        return getString("city");
     }
 
     public void setCity(String city) {
-        this.city = city;
+        put("city", city);
     }
 
     public String getState() {
-        return state;
+       return getString("state");
     }
 
     public void setState(String state) {
-        this.state = state;
+       put("state", state);
     }
 
 }

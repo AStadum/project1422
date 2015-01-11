@@ -9,6 +9,14 @@
     tools:context="com.addressbook.thorrism.addressbook.BookSelectionScreen">
 
 
+    <ProgressBar
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:id="@+id/querySpinner"
+        style="?android:attr/progressBarStyleLargeInverse"
+        android:visibility="gone"/>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -22,37 +30,17 @@
 
     <ListView
         android:id="@+id/booksList"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:visibility="visible"
+        android:longClickable="true"
+        android:clickable="true"/>
+
+    <EditText
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"/>
-
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/addBookBtn"
-        android:text="@string/create_book"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"/>
-
-    <LinearLayout
-        android:id="@+id/addBookLayout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_centerInParent="true">
-
-        <EditText
-            android:id="@+id/bookNameEdit"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:inputType="text"
-            android:maxLines="1"
-            android:singleLine="true"
-            android:hint="@string/book_name"/>
-
-
-    </LinearLayout>
-
-
+        android:id="@+id/resultEditView"
+        android:visibility="gone"
+        android:inputType="text"/>
 
 </RelativeLayout>

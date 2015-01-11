@@ -12,12 +12,14 @@ import com.parse.ParseUser;
 
 public class SplashScreen extends Activity {
     private boolean started;
+    private boolean ended;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_screen);
         started = false;
+        ended   = false;
 
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
         new LoadTask().execute();
@@ -35,6 +37,7 @@ public class SplashScreen extends Activity {
             try{
                 started = true;
                 Thread.sleep(2500); //Load database here instead of sleeping
+                ended   = true;
             }catch(Exception e){
                 Log.e(DroidBook.getInstance().TAG, "Failure to sleep!");
                 e.printStackTrace();
@@ -79,6 +82,8 @@ public class SplashScreen extends Activity {
     public void onStop(){
         super.onStop();
         started = false;
+        if(!ended)
+            DroidBook.getInstance().close();
     }
 
     @Override

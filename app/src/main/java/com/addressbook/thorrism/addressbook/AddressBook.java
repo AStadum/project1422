@@ -11,9 +11,6 @@ import org.json.JSONArray;
 
 @ParseClassName("AddressBook")
 public class AddressBook extends ParseObject {
-    private String userID;
-    private String bookName;
-    private JSONArray entries;
 
     public String getUserID() {
         return getString("userID");
