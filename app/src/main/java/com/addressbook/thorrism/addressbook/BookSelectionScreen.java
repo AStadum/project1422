@@ -1,5 +1,6 @@
 package com.addressbook.thorrism.addressbook;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -58,6 +59,10 @@ public class BookSelectionScreen extends Activity {
         mBooksView   = (ListView) findViewById(R.id.booksList);
         mProgressBar = (ProgressBar) findViewById(R.id.querySpinner);
         mVibrator    = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
+
+        ActionBar actionBar = getActionBar();
+        actionBar.setIcon(R.drawable.ic_logo);
 
         //Add some listeners
         addBooksViewListener();
