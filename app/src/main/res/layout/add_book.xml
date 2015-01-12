@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="25dp"
+    android:paddingBottom="25dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/addBookView"
+        android:text="@string/book_add_name"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:paddingTop="5dp"
+        android:paddingLeft="10dp"/>
+
+    <EditText
+        android:id="@+id/newBookEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="6"
+        android:maxEms="6"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
+        android:paddingLeft="5dp"
+        android:paddingBottom="2dp"
+        android:inputType="text"
+        android:singleLine="true"
+        android:textColor="#000"
+        android:hint="@string/book_add_hint"
+        android:textColorHint="#aaa"
+        android:layout_toRightOf="@+id/addBookView"
+        android:layout_toEndOf="@+id/addBookView"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:background="@drawable/edit_text_dialog"
+        />
+
+</RelativeLayout>
