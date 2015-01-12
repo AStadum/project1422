@@ -1,0 +1,56 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/modifyTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/book_modify"
+        android:textSize="25sp"
+        android:layout_centerHorizontal="true"
+        android:paddingBottom="15dp"
+        android:paddingTop="10dp"
+    />
+
+    <LinearLayout
+        android:id="@+id/editBookLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/modifyTextView"
+        android:paddingBottom="25dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/addBookView"
+            android:text="@string/book_add_name"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:paddingLeft="10dp"/>
+
+        <EditText
+            android:id="@+id/bookNameEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="6"
+            android:maxEms="6"
+            android:layout_marginLeft="10dp"
+            android:layout_marginStart="10dp"
+            android:paddingLeft="5dp"
+            android:paddingBottom="2dp"
+            android:inputType="text"
+            android:singleLine="true"
+            android:textColor="#000"
+            android:hint="@string/book_add_hint"
+            android:textColorHint="#aaa"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:background="@drawable/edit_text_dialog"
+            />
+
+    </LinearLayout>
+
+</RelativeLayout>

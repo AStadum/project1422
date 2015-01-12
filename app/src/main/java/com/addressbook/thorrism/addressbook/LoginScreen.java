@@ -137,7 +137,7 @@ public class LoginScreen extends Activity {
            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                if ((event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) || (actionId == EditorInfo.IME_ACTION_DONE)) {
                    new CheckUsername().execute(mUserView.getText().toString());
-                   hideKeyboard(mPasswordView);
+                   DroidBook.getInstance().hideKeyboard(mPasswordView, getApplicationContext());
                    return true;
                }
                return false;
@@ -149,16 +149,12 @@ public class LoginScreen extends Activity {
            @Override
            public void onClick(View v) {
                new CheckUsername().execute(mUserView.getText().toString());
-               hideKeyboard(mPasswordView);
+               DroidBook.getInstance().hideKeyboard(mPasswordView, getApplicationContext());
            }
        });
     }
 
-    /*Hide the keyboard based on the edit text the triggered this*/
-    public void hideKeyboard(EditText editTex){
-        InputMethodManager mgr = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-        mgr.hideSoftInputFromWindow(editTex.getWindowToken(), 0);
-    }
+
 
 
     /*Async thread to check if a username entered by the user exists in the Parse user database*/

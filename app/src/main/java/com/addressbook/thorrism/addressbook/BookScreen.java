@@ -153,7 +153,7 @@ public class BookScreen extends Activity {
 //
 //        //Attach the cursor to it's adapted and use the item view
 //        mCursorAdapter = new SimpleCursorAdapter(
-//                this, R.layout.item_view,
+//                this, R.layout.contact_item_view,
 //                mCursor,
 //                columns,
 //                views,

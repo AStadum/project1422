@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 
 import com.parse.ParseUser;
 
@@ -68,5 +70,13 @@ public class DroidBook {
         ConnectivityManager manager = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = manager.getActiveNetworkInfo();
         return info != null && info.isConnected();
+    }
+
+    /**
+    * Close the keyboard if we don't want it to show anymore
+    */
+    public void hideKeyboard(EditText editText, Context ctx){
+        InputMethodManager mgr = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
+        mgr.hideSoftInputFromWindow(editText.getWindowToken(), 0);
     }
 }

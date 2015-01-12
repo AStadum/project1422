@@ -36,11 +36,5 @@
         android:longClickable="true"
         android:clickable="true"/>
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/resultEditView"
-        android:visibility="gone"
-        android:inputType="text"/>
 
 </RelativeLayout>
