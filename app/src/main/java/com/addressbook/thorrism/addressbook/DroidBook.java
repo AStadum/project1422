@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
@@ -69,6 +70,10 @@ public class DroidBook {
     public static boolean checkNetworkStatus(Context ctx){
         ConnectivityManager manager = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = manager.getActiveNetworkInfo();
+        if(info.isRoaming()) Log.e(TAG, "Roaming");
+        if(info.isFailover()) Log.e(TAG, "Failover");
+        if(info.isAvailable()) Log.e(TAG, "Available");
+        if(info.isConnected()) Log.e(TAG, "Connected");
         return info != null && info.isConnected();
     }
 

@@ -60,7 +60,7 @@ public class BookSelectionScreen extends Activity {
         mProgressBar = (ProgressBar) findViewById(R.id.querySpinner);
         mVibrator    = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-
+        //Set the action bar's icon to be the logo.
         ActionBar actionBar = getActionBar();
         actionBar.setIcon(R.drawable.ic_logo);
 
@@ -120,7 +120,6 @@ public class BookSelectionScreen extends Activity {
                 mBooks.add(newBook);
                 displayBooks();
             }
-
             mProgressBar.setVisibility(View.GONE);
         }
     }
@@ -154,23 +153,26 @@ public class BookSelectionScreen extends Activity {
 
         @Override
         protected void onPostExecute(Integer result){
-            if(result != 0) mEmptyView.setVisibility(View.GONE);
+            if(result != 0 && result != null) mEmptyView.setVisibility(View.GONE);
 
             //Once count has been checked, we query for the books that DO exist, and populate
             //the ListView with them.
-            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
-            bookQuery.whereEqualTo("userID", DroidBook.getInstance().getUser().getObjectId());
-            bookQuery.findInBackground(new FindCallback<AddressBook>(){
+            if(result == null) Log.e("Null", "Null");
+            else {
+                ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+                bookQuery.whereEqualTo("userID", DroidBook.getInstance().getUser().getObjectId());
+                bookQuery.findInBackground(new FindCallback<AddressBook>() {
 
-                public void done(List<AddressBook> books, ParseException e) {
-                    if (e == null) {
-                        mBooks = books;
-                        displayBooks();
-                    } else {
-                        e.printStackTrace();
+                    public void done(List<AddressBook> books, ParseException e) {
+                        if (e == null) {
+                            mBooks = books;
+                            displayBooks();
+                        } else {
+                            e.printStackTrace();
+                        }
                     }
-                }
-            });
+                });
+            }
 
             mProgressBar.setVisibility(View.GONE);
         }
@@ -203,6 +205,16 @@ public class BookSelectionScreen extends Activity {
      * Also, a short vibrate is used to let the user know the long click was performed.
      */
     public void addBooksViewListener(){
+        mBooksView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(), BookScreen.class);
+                intent.putExtra("BookName", mBooks.get(position-1).getBookName());
+                startActivity(intent);
+            }
+        });
+
         mBooksView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 
             @Override
@@ -213,10 +225,15 @@ public class BookSelectionScreen extends Activity {
             //    addExitListener(exitIcon, position);
                 mVibrator.vibrate(100);
                 modifyBook(position-1);
-                return false;
+                return true;
             }
         });
+
+
+
+
     }
+
 
     /**
      * Uses the argument position to map the book we want to remove from our

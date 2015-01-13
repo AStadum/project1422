@@ -1,24 +1,37 @@
 package com.addressbook.thorrism.addressbook;
 
+import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import com.parse.FindCallback;
 import com.parse.Parse;
+import com.parse.ParseException;
+import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class BookScreen extends Activity {
 
-    private SearchView search;
-    private ListView mContactsList;
+    private SearchView mSearch;
+    private ScrollView mContactsList;
+    private String mBookName;
+    private AddressBook mBook;
+    private Bundle mExtras;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,29 +39,58 @@ public class BookScreen extends Activity {
         setContentView(R.layout.book_screen);
 
         //Acquire the contacts list view
-        mContactsList = (ListView) findViewById(R.id.contactsView);
+        mContactsList = (ScrollView) findViewById(R.id.contactsView);
+        mExtras       = getIntent().getExtras();
+        mBookName     = mExtras.getString("BookName");
+
+        //Set the action bar's icon to be the logo.
+        ActionBar actionBar = getActionBar();
+        actionBar.setIcon(R.drawable.ic_logo);
 
         //Initialize the Parse instance.
-        Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
+        initParse();
+        fetchBook(mBookName);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.home_screen, menu);
+    /**
+     * Initialize Parse to be used. Requires the context, App Id, and Client Id. Also,
+     * the classes, or ParseObjects used, are registered for use.
+     */
+    public void initParse(){
+        ParseObject.registerSubclass(AddressBook.class);
+        ParseObject.registerSubclass(Contact.class);
+        Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12" );
+    }
 
-        //Acquire the search view and manager for the search view, and add a search listener.
-        search  = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        addSearchListener();
+    /**
+     * Fetch the AddressBook from the database with the specific name the user has selected
+     * on the previous screen. Uses a query with two where clauses, one for matching userID
+     * and one to match the name.
+     * @param name - the name of the AddressBook we query from the database.
+     */
+    public void fetchBook(String name){
+        ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+        bookQuery.whereEqualTo("userID", DroidBook.getInstance().getUser().getObjectId());
+        bookQuery.whereEqualTo("bookName", name);
 
-        return super.onCreateOptionsMenu(menu);
+        bookQuery.findInBackground(new FindCallback<AddressBook>() {
+            @Override
+            public void done(List<AddressBook> addressBooks, ParseException e) {
+                if(e == null){
+                    mBook = addressBooks.get(0);
+                }else{
+                    e.printStackTrace();
+                    Log.e(DroidBook.TAG, "Error: " + e.getMessage());
+                }
+            }
+        });
     }
 
     /**
      * Add a listener for the search view when a user queries by inputting a contact name.
      */
     public void addSearchListener(){
-        search.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        mSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -70,19 +112,46 @@ public class BookScreen extends Activity {
     }
 
     /**
+     * When a user selects logout from the options drop down menu reset
+     * the DroidBook's instance of username / user and return the user to
+     * the start screen.
+     * @param item - the Logout item from the dropdown menu for options
+     */
+    public void logoutUser(MenuItem item){
+        ParseUser.logOut();
+        DroidBook.getInstance().username = "";
+        DroidBook.getInstance().user     = null;
+        startActivity(new Intent(getApplicationContext(), StartScreen.class));
+    }
+
+    /**
      * Menu tools control. Currently just listens for Add button to be pressed.
-     * @param item- the item the user has selected
+     * @param item - the item the user has selected
      * @return boolean to return if the selection was successful or not.
      */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_add:
-                createToast("Add pressed!");
+            case R.id.action_addBook:
+                startActivity(new Intent(getApplicationContext(), CreateContactScreen.class));
+                return true;
+            case R.id.action_options:
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.home_screen, menu);
+
+        //Acquire the search view and manager for the search view, and add a search listener.
+        mSearch  = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        addSearchListener();
+
+        return super.onCreateOptionsMenu(menu);
     }
 
     /**
@@ -106,60 +175,3 @@ public class BookScreen extends Activity {
         return;
     }
 }
-
-//private DatabaseAdapter mDatabaseAdapter;
-//    //  private SimpleCursorAdapter mCursorAdapter;
-//    //  private Cursor mCursor;
-//    /**
-//     * Initialize the database, creates a new one if it doesn't exist.
-//     */
-//    public void initDatabase(){
-//        mDatabaseAdapter = new DatabaseAdapter(this);
-//        try{
-//            mDatabaseAdapter.open();
-//        }catch(SQLException e){
-//            e.printStackTrace();
-//        }
-//    }
-//Local saving options
-//    /**
-//     * Add the listeners for the items in the ListView (contacts)
-//     */
-//    public void addItemListeners(){
-//        mContactsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                mCursor.moveToPosition(position);
-//                String test = mCursor.getString(mCursor.getColumnIndexOrThrow(mDatabaseAdapter.KEY_EMAIL));
-//                createToast(test);
-//            }
-//        });
-//    }
-//    /**
-//     * Display the values that exist currently within the database.
-//     */
-//    public void displayDatabase(){
-//        mCursor = mDatabaseAdapter.fetchAll();
-//
-//        //Columns for each contact
-//        String[] columns = new String[]{
-//                mDatabaseAdapter.KEY_NAME,
-//        };
-//
-//        //Views that receive their values (items of the ListView)
-//        int[] views = new int[]{
-//                R.id.contactNameView
-//        };
-//
-//        //Attach the cursor to it's adapted and use the item view
-//        mCursorAdapter = new SimpleCursorAdapter(
-//                this, R.layout.contact_item_view,
-//                mCursor,
-//                columns,
-//                views,
-//                0);
-//
-//        //Set the adapter to the ListView to populate it with the results from our database
-//        mContactsList.setAdapter(mCursorAdapter);
-//        addItemListeners();
-//    }

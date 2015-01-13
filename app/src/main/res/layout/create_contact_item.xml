@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:orientation="horizontal">
+
+    <EditText
+        android:id="@+id/firstNameEdit"
+        android:layout_width="fill_parent"
+        android:layout_height="30dp"
+        android:paddingLeft="5dp"
+        android:inputType="text"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:hint="@string/first_name"
+        android:padding="5dp"
+        android:textColor="#000"
+        android:background="@drawable/edit_text_form"/>
+
+    <EditText
+        android:id="@+id/lastNameEdit"
+        android:layout_width="fill_parent"
+        android:layout_height="30dp"
+        android:paddingLeft="5dp"
+        android:inputType="text"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:padding="5dp"
+        android:textColor="#000"
+        android:hint="@string/last_name"
+        android:background="@drawable/edit_text_form"/>
+
+    <EditText
+        android:id="@+id/addressNameEdit"
+        android:layout_width="fill_parent"
+        android:layout_height="30dp"
+        android:paddingLeft="5dp"
+        android:inputType="text"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:padding="5dp"
+        android:textColor="#000"
+        android:hint="@string/address_input"
+        android:background="@drawable/edit_text_form"/>
+
+    <EditText
+        android:id="@+id/cityNameEdit"
+        android:layout_width="fill_parent"
+        android:layout_height="30dp"
+        android:paddingLeft="5dp"
+        android:inputType="text"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:padding="5dp"
+        android:textColor="#000"
+        android:hint="@string/city_input"
+        android:background="@drawable/edit_text_form"/>
+
+    <EditText
+        android:id="@+id/stateNameEdit"
+        android:layout_width="fill_parent"
+        android:layout_height="30dp"
+        android:paddingLeft="5dp"
+        android:inputType="text"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:padding="5dp"
+        android:textColor="#000"
+        android:hint="@string/state_input"
+        android:background="@drawable/edit_text_form"/>
+
+    <EditText
+        android:id="@+id/zipcodeEdit"
+        android:layout_width="fill_parent"
+        android:layout_height="30dp"
+        android:paddingLeft="5dp"
+        android:inputType="number"
+        android:singleLine="true"
+        android:maxLines="1"
+        android:padding="5dp"
+        android:textColor="#000"
+        android:hint="@string/zipcode_input"
+        android:background="@drawable/edit_text_form"/>
+
+</LinearLayout>

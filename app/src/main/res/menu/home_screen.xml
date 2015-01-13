@@ -11,9 +11,23 @@
         android:actionViewClass="android.widget.SearchView" />
 
     <item
-        android:id="@+id/action_add"
-        android:icon="@drawable/ic_action_new"
-        android:title="@string/action_add"
-        android:showAsAction="always"/>
+        android:id="@+id/action_addBook"
+        android:showAsAction="always"
+        android:icon="@drawable/ic_add"
+        android:title="@string/action_add_book"/>
+
+    <item
+        android:id="@+id/action_options"
+        android:showAsAction="always"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/action_settings">
+        <menu>
+            <item
+                android:id="@+id/logoutBtn"
+                android:title="@string/logout_user"
+                android:onClick="logoutUser">
+            </item>
+        </menu>
+    </item>
 
 </menu>

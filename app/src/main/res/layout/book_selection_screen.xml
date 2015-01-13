@@ -32,9 +32,7 @@
         android:id="@+id/booksList"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:visibility="visible"
-        android:longClickable="true"
-        android:clickable="true"/>
+        android:visibility="visible"/>
 
 
 </RelativeLayout>
