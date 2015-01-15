@@ -26,5 +26,7 @@
     <string name="book_modify">Choose option</string>
     <string name="save_contact">Save</string>
     <string name="cancel_contact">Cancel</string>
+    <string name="empty_contacts">No Contacts Found!</string>
+    <string name="contact_item_header">A</string>
 
 </resources>

@@ -6,26 +6,21 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.util.Log;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -37,10 +32,10 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import org.json.JSONArray;
 
+import java.util.ArrayList;
+import java.util.List;
 
 public class BookSelectionScreen extends Activity {
     private TextView mEmptyView;
@@ -60,7 +55,7 @@ public class BookSelectionScreen extends Activity {
         mProgressBar = (ProgressBar) findViewById(R.id.querySpinner);
         mVibrator    = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 
-        //Set the action bar's icon to be the logo.
+        //Set the action b/ar's icon to be the logo.
         ActionBar actionBar = getActionBar();
         actionBar.setIcon(R.drawable.ic_logo);
 
@@ -116,6 +111,7 @@ public class BookSelectionScreen extends Activity {
                 AddressBook newBook = new AddressBook();
                 newBook.setBookName(result.getRight());
                 newBook.setUserID(DroidBook.getInstance().getUser().getObjectId());
+                newBook.initEntries(new ArrayList<Contact>());
                 newBook.saveInBackground(); //Important to call this, in order to save data
                 mBooks.add(newBook);
                 displayBooks();
@@ -173,7 +169,6 @@ public class BookSelectionScreen extends Activity {
                     }
                 });
             }
-
             mProgressBar.setVisibility(View.GONE);
         }
     }
@@ -209,8 +204,10 @@ public class BookSelectionScreen extends Activity {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(position == 0) return; //Don't perform action on the header item
                 Intent intent = new Intent(getApplicationContext(), BookScreen.class);
-                intent.putExtra("BookName", mBooks.get(position-1).getBookName());
+                AddressBook book = mBooks.get(position-1);
+                intent.putExtra("BookId", book.getObjectId());
                 startActivity(intent);
             }
         });
@@ -228,10 +225,6 @@ public class BookSelectionScreen extends Activity {
                 return true;
             }
         });
-
-
-
-
     }
 
 

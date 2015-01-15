@@ -2,20 +2,31 @@ package com.addressbook.thorrism.addressbook;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Toast;
+
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseQuery;
+import com.parse.SaveCallback;
+
+import java.util.List;
 
 
 public class CreateContactScreen extends Activity {
 
     private ScrollView mScrollView;
+    private ProgressBar mProgressBar;
     private EditText mFirstNameEdit;
     private EditText mLastNameEdit;
     private EditText mAddressEdit;
@@ -24,6 +35,7 @@ public class CreateContactScreen extends Activity {
     private EditText mStateEdit;
     private Button   mAddBtn;
     private Button   mCancelBtn;
+    private AddressBook mBook;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +56,7 @@ public class CreateContactScreen extends Activity {
         mScrollView    = (ScrollView) findViewById(R.id.newContactScroll);
         mAddBtn        = (Button) findViewById(R.id.addContactBtn);
         mCancelBtn     = (Button) findViewById(R.id.cancelContactBtn);
+        mProgressBar   = (ProgressBar) findViewById(R.id.addContactsSpinner);
 
         //Add listeners to the EditText fields
         addFocusListener(mFirstNameEdit);
@@ -55,6 +68,9 @@ public class CreateContactScreen extends Activity {
 
        //Add listeners to the buttons
         addButtonListeners();
+
+       //Retrieve from the extras passed from last activity the book we are operating on
+       fetchBook(getIntent().getExtras().getString("BookId"));
     }
 
     public void addFocusListener(EditText v){
@@ -79,20 +95,102 @@ public class CreateContactScreen extends Activity {
         });
     }
 
+    /**
+     * Add the click listeners for the buttons to cancel creating new contact, and adding
+     * a new contact. Both buttons return you to the previous screen.
+     *
+     * TODO do input checking for the data fields (first name, lastname, zipcode, etc..)
+     */
     public void addButtonListeners(){
+
+        //Do input checking, and return the user to the previous screen with updated contacts.
         mAddBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                createToast("Add");
+                //TODO DO INPUT CHECKING HERE.
+                Contact contact = createContact();
+                if(contact == null) Log.e(DroidBook.TAG, "Null");
+                else{
+                    mBook.addEntry(contact);
+                    new SaveTask().execute();
+                }
+
             }
         });
 
+        //Return the user to the previous screen (Contacts Screen)
         mCancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                createToast("Cancel");
+                onBackPressed();
             }
         });
+    }
+
+    public Contact createContact(){
+        Contact contact = new Contact();
+        contact.setFirstName(mFirstNameEdit.getText().toString());
+        contact.setLastName(mLastNameEdit.getText().toString());
+        contact.setZipcode(Integer.parseInt((mZipcodeEdit.getText().toString())));
+        contact.setState(mStateEdit.getText().toString());
+        contact.setCity(mStateEdit.getText().toString());
+        contact.setAddress(mAddressEdit.getText().toString());
+        contact.saveInBackground();
+      //  contact.pinInBackground();
+        return contact;
+    }
+
+
+    /**
+     * Fetch the AddressBook from the database with the specific name the user has selected
+     * on the previous screen. Uses a query with two where clauses, one for matching userID
+     * and one to match the name.
+     * @param name - the name of the AddressBook we query from the database.
+     */
+    public void fetchBook(String name) {
+        ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+        bookQuery.whereEqualTo("objectId", name);
+
+        bookQuery.findInBackground(new FindCallback<AddressBook>() {
+
+            @Override
+            public void done(List<AddressBook> addressBooks, ParseException e) {
+                if(e == null){
+                    mBook = addressBooks.get(0);
+                    Log.e(DroidBook.TAG, "Book: " + mBook.getObjectId());
+                }else{
+                    e.printStackTrace();
+                    Log.e(DroidBook.TAG, "Error: " + e.getMessage());
+                }
+            }
+        });
+    }
+
+    private class SaveTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        public void onPreExecute() {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mScrollView.setVisibility(View.GONE);
+        }
+
+        @Override
+        public Void doInBackground(Void... params) {
+            try {
+                mBook.save();
+            } catch (ParseException e) {
+                e.printStackTrace();
+                Log.e(DroidBook.TAG, "Error: " + e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        public void onPostExecute(Void result) {
+            mProgressBar.setVisibility(View.GONE);
+            mScrollView.setVisibility(View.VISIBLE);
+            onBackPressed();
+        }
     }
 
     /**

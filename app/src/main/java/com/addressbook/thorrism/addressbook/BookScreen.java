@@ -3,14 +3,18 @@ package com.addressbook.thorrism.addressbook;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
-import android.widget.ScrollView;
+import android.widget.ProgressBar;
 import android.widget.SearchView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
@@ -20,18 +24,21 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 
 public class BookScreen extends Activity {
 
     private SearchView mSearch;
-    private ScrollView mContactsList;
-    private String mBookName;
+    private ListView mContactsView;
+    private TextView mEmptyView;
     private AddressBook mBook;
-    private Bundle mExtras;
+    private String mBookId;
+    private List<Contact> mContacts;
+    private ProgressBar mContactSpinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,9 +46,11 @@ public class BookScreen extends Activity {
         setContentView(R.layout.book_screen);
 
         //Acquire the contacts list view
-        mContactsList = (ScrollView) findViewById(R.id.contactsView);
-        mExtras       = getIntent().getExtras();
-        mBookName     = mExtras.getString("BookName");
+        mContactsView   = (ListView) findViewById(R.id.contactsView);
+        mEmptyView      = (TextView) findViewById(R.id.currentBookView);
+        mContactSpinner = (ProgressBar) findViewById(R.id.contactsSpinner);
+        mContacts       = new ArrayList<Contact>();
+        mBookId         = getIntent().getExtras().getString("BookId");
 
         //Set the action bar's icon to be the logo.
         ActionBar actionBar = getActionBar();
@@ -49,7 +58,7 @@ public class BookScreen extends Activity {
 
         //Initialize the Parse instance.
         initParse();
-        fetchBook(mBookName);
+        new FetchBookTask().execute(mBookId);
     }
 
     /**
@@ -70,18 +79,104 @@ public class BookScreen extends Activity {
      */
     public void fetchBook(String name){
         ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
-        bookQuery.whereEqualTo("userID", DroidBook.getInstance().getUser().getObjectId());
-        bookQuery.whereEqualTo("bookName", name);
+        bookQuery.whereEqualTo("objectId", name);
 
         bookQuery.findInBackground(new FindCallback<AddressBook>() {
             @Override
             public void done(List<AddressBook> addressBooks, ParseException e) {
                 if(e == null){
-                    mBook = addressBooks.get(0);
+                    mBook     = addressBooks.get(0);
+                    mContacts = mBook.getEntries();
+                    Log.e(DroidBook.TAG, mBook.getBookName());
+                    if(mContacts == null){
+                        mEmptyView.setVisibility(View.VISIBLE);
+                    }else{
+                        displayContacts();
+                    }
                 }else{
                     e.printStackTrace();
                     Log.e(DroidBook.TAG, "Error: " + e.getMessage());
                 }
+            }
+        });
+    }
+
+    /**
+     * Fetch the AddressBook from the database with the specific name the user has selected
+     * on the previous screen. Uses a query with two where clauses, one for matching userID
+     * and one to match the name.
+     */
+    private class FetchBookTask extends AsyncTask<String, Void, Boolean> {
+
+        @Override
+        protected void onPreExecute(){
+            mContactSpinner.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Boolean doInBackground(String... params){
+            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+            bookQuery.whereEqualTo("objectId", params[0]);
+
+            try{
+                List<AddressBook> books = bookQuery.find();
+                mBook = books.get(0);
+                mContacts = mBook.getEntries();
+
+                //Fetch the contacts from the entries of the current address book
+                for(Contact contact: mContacts){
+                    contact.fetchIfNeeded();
+                }
+
+                //Attempt to sort the contacts list by first name
+                Collections.sort(mContacts, new Comparator<Contact>() {
+                    @Override
+                    public int compare(Contact lhs, Contact rhs) {
+                        return lhs.getFirstName().compareTo(rhs.getFirstName());
+                    }
+                });
+                return true;
+            }catch(ParseException e){
+                e.printStackTrace();
+                Log.e(DroidBook.TAG, "Error: " + e.getMessage());
+            }
+
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean result){
+            if(result){
+                if(mContacts == null){
+                    mEmptyView.setVisibility(View.VISIBLE);
+                }else{
+                    displayContacts();
+                }
+            }
+            mContactSpinner.setVisibility(View.GONE);
+        }
+    }
+
+    /**
+     * Add the adapter to our ListView and populate it with our Contacts
+     */
+    public void displayContacts(){
+        Log.e(DroidBook.TAG, "Starting to add..");
+        ContactAdapter adapter = new ContactAdapter(this,
+                                                    R.layout.contact_item_view,
+                                                    mContacts);
+
+        if(mContacts.size() == 0) mEmptyView.setVisibility(View.VISIBLE);
+        else{
+            mEmptyView.setVisibility(View.INVISIBLE);
+            mContactsView.setVisibility(View.VISIBLE);
+        }
+
+        //Attach the ContactAdapter to the Contacts ListView
+        mContactsView.setAdapter(adapter);
+        mContactsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             }
         });
     }
@@ -133,7 +228,9 @@ public class BookScreen extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_addBook:
-                startActivity(new Intent(getApplicationContext(), CreateContactScreen.class));
+                Intent intent = new Intent(this, CreateContactScreen.class);
+                intent.putExtra("BookId", mBookId);
+                startActivity(intent);
                 return true;
             case R.id.action_options:
                 return true;
@@ -157,6 +254,15 @@ public class BookScreen extends Activity {
     /**
      * Deal with the Android lifecycle.
      */
+    @Override
+    public void onResume(){
+        super.onResume();
+        Log.e(DroidBook.TAG, "Resumed!");
+        if(mBook != null && mContacts != null){
+            new FetchBookTask().execute(mBookId);
+        }
+    }
+
     @Override
     public void onStart(){
         super.onStart();

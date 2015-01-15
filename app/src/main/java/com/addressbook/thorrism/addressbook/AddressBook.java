@@ -5,6 +5,8 @@ import com.parse.ParseObject;
 
 import org.json.JSONArray;
 
+import java.util.List;
+
 /**
  * Created by Lucas Crawford on 1/9/2015.
  */
@@ -21,7 +23,7 @@ public class AddressBook extends ParseObject {
     }
 
     public String getBookID() {
-        return getString("objectId");
+        return getObjectId();
     }
 
     public String getBookName() {
@@ -32,10 +34,13 @@ public class AddressBook extends ParseObject {
         put("bookName", bookName);
     }
 
-    public JSONArray getEntries() {
-        return getJSONArray("entries");
+    public List<Contact> getEntries() {
+        return getList("entries");
     }
 
+    public void initEntries(List<Contact> entries){
+        put("entries", entries);
+    }
     /**
      * Add a new entry to the address book. Contacts are ParseObjects
      * so we just put a new ParseObject within the JSONArray for this
@@ -43,8 +48,8 @@ public class AddressBook extends ParseObject {
      * @param contact
      */
     public void addEntry(Contact contact) {
-        JSONArray entries = getEntries();
-        entries.put(contact);
+        List<Contact> entries = getEntries();
+        entries.add(contact);
         put("entries", entries);
     }
 
