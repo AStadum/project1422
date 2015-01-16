@@ -22,6 +22,9 @@ import com.parse.ParseException;
 import com.parse.ParseUser;
 import com.parse.SignUpCallback;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 public class SignupScreen extends Activity {
     // UI references.
@@ -96,10 +99,17 @@ public class SignupScreen extends Activity {
         }
 
         // Check for a valid password, if the user entered one.
-        if (!TextUtils.isEmpty(password) && !isPasswordValid(password)) {
-            mPasswordView.setError(getString(R.string.error_invalid_password));
-            focusView = mPasswordView;
-            cancel    = true;
+        if (!TextUtils.isEmpty(password)) {
+            if(isPasswordValid(password)==0) {
+                mPasswordView.setError(getString(R.string.error_invalid_password1));
+                focusView = mPasswordView;
+                cancel = true;
+            }
+            if(isPasswordValid(password)==-1){
+                mPasswordView.setError(getString(R.string.error_invalid_password2));
+                focusView = mPasswordView;
+                cancel = true;
+            }
         } else if (TextUtils.isEmpty(password)) {
             mPasswordView.setError(getString(R.string.error_field_required));
             focusView = mPasswordView;
@@ -181,11 +191,18 @@ public class SignupScreen extends Activity {
     }
 
     /*TODO add a check for needing a special character*/
-    private boolean isPasswordValid(String password) {
+    private int isPasswordValid(String password) {
         if (password.length() < 6) {
-            return false;
+            return 0;
         }
-        return true;
+        Pattern p = Pattern.compile("[^a-zA-Z0-9 ]");
+        Matcher m = p.matcher(password);
+        boolean b = m.find();
+
+        if (!b) {
+            return -1;
+        }
+        return 1;
     }
 
     private boolean isNumberValid(String number) {
