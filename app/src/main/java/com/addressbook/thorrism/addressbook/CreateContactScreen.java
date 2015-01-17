@@ -35,6 +35,7 @@ public class CreateContactScreen extends Activity {
     private EditText mStateEdit;
     private Button   mAddBtn;
     private Button   mCancelBtn;
+    private EditText mCurrentEdit;
     private AddressBook mBook;
 
     @Override
@@ -79,6 +80,7 @@ public class CreateContactScreen extends Activity {
                 //Check if the Version is JELLY BEAN, if so use deprecated setBackground method.
                 if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
                     if(hasFocus){
+                        mCurrentEdit = (EditText) v;
                         v.setBackgroundDrawable(getResources().getDrawable(R.drawable.edit_text_form_selected));
                         mScrollView.scrollTo((int)v.getX(), (int)v.getY());
                     }
@@ -86,8 +88,9 @@ public class CreateContactScreen extends Activity {
                 }
                 else{
                     if(hasFocus){
+                        mCurrentEdit = (EditText) v;
                         v.setBackground(getResources().getDrawable(R.drawable.edit_text_form_selected));
-                        mScrollView.scrollTo(0, (int) v.getY()-20);
+                        mScrollView.scrollTo(0, (int) v.getY());
                     }
                     else v.setBackground(getResources().getDrawable(R.drawable.edit_text_form));
                 }
@@ -111,6 +114,7 @@ public class CreateContactScreen extends Activity {
                 Contact contact = createContact();
                 if(contact == null) Log.e(DroidBook.TAG, "Null");
                 else{
+                    DroidBook.getInstance().hideKeyboard(mCurrentEdit, getApplicationContext());
                     mBook.addEntry(contact);
                     new SaveTask().execute();
                 }
@@ -122,18 +126,32 @@ public class CreateContactScreen extends Activity {
         mCancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                DroidBook.getInstance().hideKeyboard(mCurrentEdit, getApplicationContext());
                 onBackPressed();
             }
         });
     }
 
+    /**
+     * Capitalize the first letter for the argument string, and return the string back
+     * once done.
+     *
+     * @param s - input string to have first letter capitalized
+     * @return the output from capitalizing the first letter
+     */
+    public String capitalizeFirstLetter(String s){
+        String tmp  = s.substring(1, s.length());
+        String tmp2 = Character.toString(s.charAt(0)).toUpperCase();
+        return tmp2+tmp;
+    }
+
     public Contact createContact(){
         Contact contact = new Contact();
-        contact.setFirstName(mFirstNameEdit.getText().toString());
-        contact.setLastName(mLastNameEdit.getText().toString());
+        contact.setFirstName(capitalizeFirstLetter(mFirstNameEdit.getText().toString()));
+        contact.setLastName(capitalizeFirstLetter(mLastNameEdit.getText().toString()));
         contact.setZipcode(Integer.parseInt((mZipcodeEdit.getText().toString())));
-        contact.setState(mStateEdit.getText().toString());
-        contact.setCity(mStateEdit.getText().toString());
+        contact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
+        contact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
         contact.setAddress(mAddressEdit.getText().toString());
         contact.saveInBackground();
       //  contact.pinInBackground();

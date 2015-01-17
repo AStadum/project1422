@@ -16,7 +16,7 @@ import com.parse.ParseUser;
 public class DroidBook {
     public static String TAG = "DroidBook";
     public static Activity splashScreenActivity;
-    public static Activity homeScreenActivity;
+    public static Activity contactScreenActivity;
     public static Activity loginScreenActivity;
     public static Activity signupScreenActivity;
     public static Activity startScreenActivity;
@@ -46,7 +46,7 @@ public class DroidBook {
      */
     public static void close(){
         if(splashScreenActivity != null) splashScreenActivity.finish();
-        if(homeScreenActivity != null) homeScreenActivity.finish();
+        if(contactScreenActivity != null) contactScreenActivity.finish();
         if(loginScreenActivity != null) loginScreenActivity.finish();
         if(startScreenActivity != null) startScreenActivity.finish();
         if(bookSelectionActivity != null) bookSelectionActivity.finish();

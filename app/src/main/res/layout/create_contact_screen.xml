@@ -26,12 +26,24 @@
                 android:textSize="20sp"
                 android:layout_gravity="center_horizontal"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/first_name"
+                android:textAllCaps="true"
+                android:textColor="#00BFFF"
+                android:textSize="10sp"/>
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#00BFFF"/>
+
             <EditText
                 android:id="@+id/firstNameEdit"
                 android:layout_width="fill_parent"
                 android:layout_height="40dp"
-                android:paddingLeft="5dp"
-                android:layout_marginTop="10dp"
+                android:paddingLeft="6dp"
                 android:inputType="text"
                 android:singleLine="true"
                 android:maxLines="1"
@@ -40,12 +52,25 @@
                 android:textColor="#000"
                 android:background="@drawable/edit_text_form"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:text="@string/last_name"
+                android:textAllCaps="true"
+                android:textColor="#00BFFF"
+                android:textSize="10sp"/>
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#00BFFF"/>
+
             <EditText
                 android:id="@+id/lastNameEdit"
                 android:layout_width="fill_parent"
                 android:layout_height="40dp"
-                android:paddingLeft="5dp"
-                android:layout_marginTop="10dp"
+                android:paddingLeft="6dp"
                 android:inputType="text"
                 android:singleLine="true"
                 android:maxLines="1"
@@ -54,12 +79,25 @@
                 android:hint="@string/last_name"
                 android:background="@drawable/edit_text_form"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:text="@string/address_input"
+                android:textAllCaps="true"
+                android:textColor="#00BFFF"
+                android:textSize="10sp"/>
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#00BFFF"/>
+
             <EditText
                 android:id="@+id/addressNameEdit"
                 android:layout_width="fill_parent"
                 android:layout_height="40dp"
-                android:paddingLeft="5dp"
-                android:layout_marginTop="10dp"
+                android:paddingLeft="6dp"
                 android:inputType="text"
                 android:singleLine="true"
                 android:maxLines="1"
@@ -68,12 +106,25 @@
                 android:hint="@string/address_input"
                 android:background="@drawable/edit_text_form"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:text="@string/city_input"
+                android:textAllCaps="true"
+                android:textColor="#00BFFF"
+                android:textSize="10sp"/>
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#00BFFF"/>
+
             <EditText
                 android:id="@+id/cityNameEdit"
                 android:layout_width="fill_parent"
                 android:layout_height="40dp"
-                android:paddingLeft="5dp"
-                android:layout_marginTop="10dp"
+                android:paddingLeft="6dp"
                 android:inputType="text"
                 android:singleLine="true"
                 android:maxLines="1"
@@ -82,12 +133,25 @@
                 android:hint="@string/city_input"
                 android:background="@drawable/edit_text_form"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:text="@string/state_input"
+                android:textAllCaps="true"
+                android:textColor="#00BFFF"
+                android:textSize="10sp"/>
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#00BFFF"/>
+
             <EditText
                 android:id="@+id/stateNameEdit"
                 android:layout_width="fill_parent"
                 android:layout_height="40dp"
-                android:paddingLeft="5dp"
-                android:layout_marginTop="10dp"
+                android:paddingLeft="6dp"
                 android:inputType="text"
                 android:singleLine="true"
                 android:maxLines="1"
@@ -96,12 +160,25 @@
                 android:hint="@string/state_input"
                 android:background="@drawable/edit_text_form"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:text="@string/zipcode_input"
+                android:textAllCaps="true"
+                android:textColor="#00BFFF"
+                android:textSize="10sp"/>
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#00BFFF"/>
+
             <EditText
                 android:id="@+id/zipcodeEdit"
                 android:layout_width="fill_parent"
                 android:layout_height="40dp"
-                android:paddingLeft="5dp"
-                android:layout_marginTop="10dp"
+                android:paddingLeft="6dp"
                 android:inputType="number"
                 android:singleLine="true"
                 android:maxLines="1"
@@ -149,9 +226,9 @@
     </LinearLayout>
 
     <ProgressBar
+        android:id="@+id/addContactsSpinner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/addContactsSpinner"
         android:layout_centerInParent="true"
         android:indeterminate="true"
         style="?android:attr/progressBarStyleLargeInverse"

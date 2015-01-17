@@ -257,7 +257,7 @@ public class BookSelectionScreen extends Activity {
     }
 
     /**
-     * Not currently used. Inteded purpose was for if a user performs a "Long Click" on an
+     * Not currently used. Intended purpose was for if a user performs a "Long Click" on an
      * item within a list view, the remove icon is added on the far right of the item. When
      * the remove action is clicked, this listener removes the item from the ListView and
      * database, and also updates the ListView display for the user.

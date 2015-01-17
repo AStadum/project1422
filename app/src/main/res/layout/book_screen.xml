@@ -10,6 +10,12 @@
         android:id="@+id/contactsView"
         android:visibility="gone"/>
 
+    <ExpandableListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/contactsExpandableView"
+        android:visibility="visible"/>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
