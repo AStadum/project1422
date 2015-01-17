@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,4 +13,26 @@
         android:textSize="20sp"
         android:paddingLeft="50dp"/>
 
-</LinearLayout>
+    <ImageView
+        android:id="@+id/contactRemoveBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_list_remove"
+        android:contentDescription="Remove contact"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:paddingRight="5dp"
+        android:visibility="gone"/>
+
+    <ImageView
+        android:id="@+id/contactEditBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_edit"
+        android:contentDescription="Edit Contact"
+        android:layout_toLeftOf="@+id/contactRemoveBtn"
+        android:layout_toStartOf="@+id/contactRemoveBtn"
+        android:paddingRight="5dp"
+        android:visibility="gone"/>
+
+</RelativeLayout>

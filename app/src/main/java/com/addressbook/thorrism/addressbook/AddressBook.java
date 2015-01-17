@@ -41,12 +41,11 @@ public class AddressBook extends ParseObject {
     public void initEntries(List<Contact> entries){
         put("entries", entries);
     }
-    /**
-     * Add a new entry to the address book. Contacts are ParseObjects
-     * so we just put a new ParseObject within the JSONArray for this
-     * address book (Also a ParseObject).
-     * @param contact
-     */
+
+    public void setEntries(List<Contact> entries){
+        put("entries", entries);
+    }
+
     public void addEntry(Contact contact) {
         List<Contact> entries = getEntries();
         entries.add(contact);
@@ -56,9 +55,11 @@ public class AddressBook extends ParseObject {
     /**
      * Remove an entry from the address book. This wil require
      * querying for a contact and identifying it's index to do so...
-     * @param contact contact desired to be removed.
+     * @param index contact desired to be removed.
      */
-    public void removeEntry(Contact contact, int index){
-
+    public void removeEntry(int index){
+        List<Contact> entries = getEntries();
+        entries.remove(index);
+        put("entries", entries);
     }
 }

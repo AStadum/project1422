@@ -12,12 +12,14 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ExpandableListView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.Parse;
 import com.parse.ParseException;
@@ -117,21 +119,43 @@ public class BookScreen extends Activity {
 
     public Comparator<Contact> getComparator(int compare){
         Comparator<Contact> result;
-        switch(compare){
+        //By zipcode, we check if zipcodes are equal if so, compare the names, if not just return zip codes
+        if(compare == 0) {
 
-            //By zipcode
-            case 0:
-                result = new Comparator<Contact>() {
-                    @Override
-                    public int compare(Contact lhs, Contact rhs) {
-                        int firstZip  = lhs.getZipcode();
-                        int secondZip = rhs.getZipcode();
-                        Integer.toString(firstZip).toString().compareTo(Integer.toString(firstZip).toString());
-                        return 0;
-                    }
-                };
-            default:
-                result = null;
+            Log.e("Zipsort", "Zipsort");
+            result = new Comparator<Contact>() {
+                @Override
+                public int compare(Contact lhs, Contact rhs) {
+                    int val = lhs.getZipcode() - rhs.getZipcode();
+                    if (val == 0)
+                        return (lhs.getFirstName() + lhs.getLastName()).compareTo(rhs.getFirstName() + rhs.getLastName());
+                    else return val;
+                }
+            };
+        }
+        //By last name sort, just compare last names
+        else if(compare == 1) {
+            result = new Comparator<Contact>() {
+                @Override
+                public int compare(Contact lhs, Contact rhs) {
+                    int val = lhs.getLastName().compareTo(rhs.getLastName());
+                    if (val == 0)
+                        return (lhs.getFirstName() + lhs.getLastName()).compareTo((rhs.getFirstName() + rhs.getLastName()));
+                    else return val;
+                }
+            };
+        }
+        else{
+            Log.e("Default", "Default");
+            result = new Comparator<Contact>() {
+                @Override
+                public int compare(Contact lhs, Contact rhs) {
+                    int val = lhs.getFirstName().compareTo(rhs.getFirstName());
+                    if(val == 0)
+                        return (lhs.getFirstName() + lhs.getLastName()).compareTo((rhs.getFirstName() + rhs.getLastName()));
+                    else return val;
+                }
+            };
         }
         return result;
     }
@@ -155,26 +179,24 @@ public class BookScreen extends Activity {
                 mContactHeaders.clear();
                 mContactData.clear();
 
-                //Fetch the contacts from the entries of the current address book
-                Contact contact = null;
-                for(int i=0; i<mContacts.size(); ++i){
-                    contact = mContacts.get(i);
+                //Fetch the contacts, must do to have a value for the contact
+                for(Contact contact: mContacts){
                     contact.fetchIfNeeded();
-                    if(mContactData.get(i) == null) {
+                }
+
+                //Attempt to sort the contacts list by first name
+                Collections.sort(mContacts, getComparator(0));
+                mBook.setEntries(mContacts);
+
+                //Fetch the contacts from the entries of the current address book
+                Contact contact;
+                for(int i=0; i<mContacts.size(); ++i){
+                    if(mContactData.get(mContacts.get(i).getFirstName() + " " + mContacts.get(i).getLastName() ) == null) {
+                        contact = mContacts.get(i);
                         mContactHeaders.add(contact.getFirstName() + " " + contact.getLastName());
                         mContactData.put(mContactHeaders.get(mContactData.size()), contact);
                     }
                 }
-
-                //Attempt to sort the contacts list by first name
-                Collections.sort(mContactHeaders, new Comparator<String>() {
-
-                    @Override
-                    public int compare(String lhs, String rhs) {
-                        return lhs.compareTo(rhs);
-                    }
-                });
-
                 return true;
             }catch(ParseException e){
                 e.printStackTrace();
@@ -199,12 +221,58 @@ public class BookScreen extends Activity {
         }
     }
 
-
     public void displayList(){
         mAdapter = new ContactExpandableAdapter(this, mContactHeaders, mContactData);
         mExpandableView.setAdapter(mAdapter);
+        addHeaderListeners();
     }
 
+    public void addHeaderListeners(){
+
+        mExpandableView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+
+                final int index = position;
+                View row = mExpandableView.getChildAt(position);
+                ImageView removeIcon = (ImageView) row.findViewById(R.id.contactRemoveBtn);
+                ImageView editIcon   = (ImageView) row.findViewById(R.id.contactEditBtn);
+                removeIcon.setVisibility(View.VISIBLE);
+                editIcon.setVisibility(View.VISIBLE);
+                removeIcon.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        removeContact(index);
+                    }
+                });
+                return true;
+            }
+        });
+    }
+
+    public void removeContact(int position){
+        Contact contact = mContacts.get(position);
+        mBook.removeEntry(position);
+        mContactHeaders.remove(position);
+        mBook.saveInBackground();
+
+        contact.deleteInBackground(new DeleteCallback() {
+
+            @Override
+            public void done(ParseException e) {
+                if(e==null){
+                    createToast("Deleted Contact");
+                }else{
+                    e.printStackTrace();
+                    createToast("Failed to delete.");
+                }
+            }
+        });
+
+        //Update the display to show contact removed
+        displayList();
+    }
 
 
 //    /**
@@ -342,6 +410,7 @@ public class BookScreen extends Activity {
             case R.id.action_options:
                 return true;
             default:
+
                 return super.onOptionsItemSelected(item);
         }
     }
