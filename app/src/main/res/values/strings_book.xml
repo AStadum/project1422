@@ -31,5 +31,6 @@
     <string name="empty_contacts">No Contacts Found!</string>
     <string name="contact_item_header">A</string>
     <string name="return_to_books">Return to Address Books</string>
+    <string name="remove_book_message">Are you sure?</string>
 
 </resources>

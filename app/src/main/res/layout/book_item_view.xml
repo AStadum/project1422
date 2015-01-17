@@ -25,7 +25,20 @@
         android:layout_alignParentEnd="true"
         android:visibility="gone"
         android:layout_marginTop="5dp"
-        android:contentDescription="Remove"/>
+        android:contentDescription="Remove Address Book"/>
+
+    <ImageView
+        android:id="@+id/editViewIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_edit"
+        android:layout_toLeftOf="@+id/exitViewIcon"
+        android:layout_toStartOf="@+id/exitViewIcon"
+        android:visibility="gone"
+        android:layout_marginRight="25dp"
+        android:layout_marginEnd="25dp"
+        android:layout_marginTop="5dp"
+        android:contentDescription="Edit Name"/>
 
 
 </RelativeLayout>

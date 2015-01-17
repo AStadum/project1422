@@ -216,12 +216,15 @@ public class BookSelectionScreen extends Activity {
 
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-             //   View row = mBooksView.getChildAt(position);
-              //  ImageView exitIcon = (ImageView) row.findViewById(R.id.exitViewIcon);
-             //   exitIcon.setVisibility(View.VISIBLE);
-            //    addExitListener(exitIcon, position);
+                View row = mBooksView.getChildAt(position);
+                ImageView exitIcon = (ImageView) row.findViewById(R.id.exitViewIcon);
+                ImageView editIcon = (ImageView) row.findViewById(R.id.editViewIcon);
+                exitIcon.setVisibility(View.VISIBLE);
+                editIcon.setVisibility(View.VISIBLE);
+
+                addExitListener(exitIcon, position);
+                addEditListener(editIcon, position);
                 mVibrator.vibrate(100);
-                modifyBook(position-1);
                 return true;
             }
         });
@@ -269,11 +272,45 @@ public class BookSelectionScreen extends Activity {
         icon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                removeBook(position-1); //Offset it to the correct position
+                removeBookDialog(position-1);
             }
         });
     }
 
+    public void addEditListener(ImageView icon, final int position){
+        icon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                modifyBook(position-1);
+            }
+        });
+
+
+    }
+    public void removeBookDialog(final int position) {
+        LayoutInflater inflater = LayoutInflater.from(this);
+
+        final View modifyBookView = inflater.inflate(R.layout.remove_book, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(modifyBookView);
+
+        builder.setCancelable(false)
+                .setNegativeButton("No", null)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface i, int id) {
+                        removeBook(position);
+                    }
+                })
+                .setTitle("Remove Address Book");
+
+        //Set the icon for the dialog window to the app's icon
+        builder.setIcon(R.drawable.ic_launcher);
+
+        //Build the dialog and create custom listeners for buttons
+        final AlertDialog dialog = builder.create();
+        dialog.show();
+    }
     /**
      * When a user selects logout from the options drop down menu reset
      * the DroidBook's instance of username / user and return the user to
@@ -330,19 +367,17 @@ public class BookSelectionScreen extends Activity {
         LayoutInflater inflater = LayoutInflater.from(this);
 
         final View modifyBookView       = inflater.inflate(R.layout.modify_book, null);
-        final TextView modifyBookText   = (TextView) modifyBookView.findViewById(R.id.modifyTextView);
-        final LinearLayout modifyLayout = (LinearLayout) modifyBookView.findViewById(R.id.editBookLayout);
         final EditText modifyBookEdit   = (EditText) modifyBookView.findViewById(R.id.bookNameEdit);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(modifyBookView);
 
         builder.setCancelable(false)
-                .setNegativeButton("Edit", null)
-                .setPositiveButton("Delete", null)
-                .setTitle(mBooks.get(position).getBookName());
+                .setNegativeButton("Save", null)
+                .setPositiveButton("Cancel", null)
+                .setTitle("Edit Book Name");
 
-
+        //Set the icon for the dialog window to the app's icon
         builder.setIcon(R.drawable.ic_launcher);
 
         //Build the dialog and create custom listeners for buttons
@@ -352,46 +387,25 @@ public class BookSelectionScreen extends Activity {
             @Override
             public void onShow(DialogInterface d) {
                 final Button editBtn   = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-                final Button deleteBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                final Button cancelBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
 
                 //Edit button listener, modifies the view to allow for editing the name or saves new name
                 editBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
-                        //To implement button "state" we check the status of the button text
-                        if(editBtn.getText().toString().equals("Edit")) { //Not in edit state yet
-                            modifyBookText.setText(R.string.book_edit);
-                            modifyLayout.setVisibility(View.VISIBLE);
-                            editBtn.setText("Save");
-                            deleteBtn.setText("Cancel");
-                        }
-                        else{  //In edit state, modify the name and update the display
-                            mBooks.get(position).setBookName(modifyBookEdit.getText().toString());
-                            displayBooks();
-                            dialog.dismiss();
-                        }
+                        mBooks.get(position).setBookName(modifyBookEdit.getText().toString());
+                        mBooks.get(position).saveInBackground();
+                        displayBooks();
+                        dialog.dismiss();
                     }
                 });
 
                 //Delete button listener, just removes the book selected or closes the edit options
-                deleteBtn.setOnClickListener(new View.OnClickListener() {
+                cancelBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
-                        //To implement button "state" we check the status of the button text
-                        if(editBtn.getText().toString().equals("Edit")) { //Not in edit state
-                            removeBook(position);
-                            dialog.dismiss();
-
-                        }else{  //Within edit state, cancel edit revert to previous state
-                            DroidBook.getInstance().hideKeyboard(modifyBookEdit, getApplicationContext());
-                            modifyLayout.setVisibility(View.GONE);
-                            modifyBookText.setText(R.string.book_modify);
-                            editBtn.setText("Edit");
-                            deleteBtn.setText("Delete");
-                        }
-
+                        DroidBook.getInstance().hideKeyboard(modifyBookEdit, getApplicationContext());
+                        dialog.dismiss();
                     }
                 });
             }
