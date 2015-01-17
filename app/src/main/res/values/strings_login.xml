@@ -10,7 +10,8 @@
     <string name="login_user">Login</string>
     <string name="logout_user">Logout</string>
     <string name="error_invalid_email">This email address is invalid</string>
-    <string name="error_invalid_password">This password is too short</string>
+    <string name="error_invalid_password1">This password is too short</string>
+    <string name="error_invalid_password2">This password must contain special character</string>
     <string name="error_invalid_username">This username is too short</string>
     <string name="error_invalid_number">This number is invalid</string>
     <string name="error_incorrect_password">This password is incorrect</string>
