@@ -67,4 +67,19 @@ public class Contact extends ParseObject{
        put("state", state);
     }
 
+    public void setNumber(String number){
+        put("number", number);
+    }
+
+    public String getNumber(){
+        return getString("number");
+    }
+
+    public void setEmail(String email){
+        put("email", email);
+    }
+
+    public String getEmail(){
+        return getString("email");
+    }
 }

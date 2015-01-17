@@ -28,4 +28,20 @@
         android:text="Eugene, Oregon 97068"
         android:textSize="20sp"/>
 
+    <TextView
+        android:id="@+id/contactEmail"
+        android:layout_below="@+id/contactCityStateZip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="lac@uoregon.edu"
+        android:textSize="20sp"/>
+
+    <TextView
+        android:id="@+id/contactNumber"
+        android:layout_below="@+id/contactEmail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="(503) 752-1246"
+        android:textSize="20sp"/>
+
 </RelativeLayout>

@@ -185,8 +185,63 @@
                 android:padding="5dp"
                 android:textColor="#000"
                 android:hint="@string/zipcode_input"
+                android:background="@drawable/edit_text_form"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:text="@string/number_input"
+                android:textAllCaps="true"
+                android:textColor="#00BFFF"
+                android:textSize="10sp"/>
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#00BFFF"/>
+
+            <EditText
+                android:id="@+id/numberEdit"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:paddingLeft="6dp"
+                android:inputType="phone"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:padding="5dp"
+                android:textColor="#000"
+                android:hint="@string/number_input"
+                android:background="@drawable/edit_text_form"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:text="@string/email_input"
+                android:textAllCaps="true"
+                android:textColor="#00BFFF"
+                android:textSize="10sp"/>
+
+            <View
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#00BFFF"/>
+
+            <EditText
+                android:id="@+id/emailEdit"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:paddingLeft="6dp"
+                android:inputType="textEmailAddress"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:padding="5dp"
+                android:textColor="#000"
+                android:hint="@string/email_input"
                 android:layout_marginBottom="75dp"
                 android:background="@drawable/edit_text_form"/>
+
         </LinearLayout>
     </ScrollView>
 

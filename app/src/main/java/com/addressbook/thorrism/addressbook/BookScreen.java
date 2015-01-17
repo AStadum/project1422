@@ -394,6 +394,15 @@ public class BookScreen extends Activity {
         startActivity(new Intent(getApplicationContext(), StartScreen.class));
     }
 
+
+    /**
+     * When a user selects "Choose new Address Book" they return to the previous screen
+     * and can select another address book to be active
+     */
+    public void returnUserToBooks(MenuItem item){
+        this.finish();
+    }
+
     /**
      * Menu tools control. Currently just listens for Add button to be pressed.
      * @param item - the item the user has selected

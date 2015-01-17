@@ -53,14 +53,19 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
             convertView = inflater.inflate(R.layout.contact_expandable_item, null);
         }
 
-        //Set the data fields of the child
+        //Grab the views for each contact item
         TextView contactName         = (TextView) convertView.findViewById(R.id.contactName);
         TextView contactAddress      = (TextView) convertView.findViewById(R.id.contactAddress);
         TextView contactCityStateZip = (TextView) convertView.findViewById(R.id.contactCityStateZip);
+        TextView contactEmail        = (TextView) convertView.findViewById(R.id.contactEmail);
+        TextView contactNumber       = (TextView) convertView.findViewById(R.id.contactNumber);
 
+        //Set the values for the views from the contacts from their information
         contactName.setText(contact.getFirstName() + " " + contact.getLastName());
         contactAddress.setText(contact.getAddress());
         contactCityStateZip.setText(contact.getCity() + ", " + contact.getState() + " " + contact.getZipcode());
+        contactEmail.setText(contact.getEmail());
+        contactNumber.setText(contact.getNumber());
 
         return convertView;
     }

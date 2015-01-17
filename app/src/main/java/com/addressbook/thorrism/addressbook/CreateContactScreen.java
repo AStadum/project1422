@@ -33,6 +33,8 @@ public class CreateContactScreen extends Activity {
     private EditText mZipcodeEdit;
     private EditText mCityEdit;
     private EditText mStateEdit;
+    private EditText mEmailEdit;
+    private EditText mNumberEdit;
     private Button   mAddBtn;
     private Button   mCancelBtn;
     private EditText mCurrentEdit;
@@ -54,6 +56,8 @@ public class CreateContactScreen extends Activity {
         mCityEdit      = (EditText) findViewById(R.id.cityNameEdit);
         mStateEdit     = (EditText) findViewById(R.id.stateNameEdit);
         mZipcodeEdit   = (EditText) findViewById(R.id.zipcodeEdit);
+        mEmailEdit     = (EditText) findViewById(R.id.emailEdit);
+        mNumberEdit    = (EditText) findViewById(R.id.numberEdit);
         mScrollView    = (ScrollView) findViewById(R.id.newContactScroll);
         mAddBtn        = (Button) findViewById(R.id.addContactBtn);
         mCancelBtn     = (Button) findViewById(R.id.cancelContactBtn);
@@ -66,6 +70,8 @@ public class CreateContactScreen extends Activity {
         addFocusListener(mCityEdit);
         addFocusListener(mStateEdit);
         addFocusListener(mZipcodeEdit);
+        addFocusListener(mEmailEdit);
+        addFocusListener(mNumberEdit);
 
        //Add listeners to the buttons
         addButtonListeners();
@@ -153,6 +159,8 @@ public class CreateContactScreen extends Activity {
         contact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
         contact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
         contact.setAddress(mAddressEdit.getText().toString());
+        contact.setEmail(mEmailEdit.getText().toString());
+        contact.setNumber(mNumberEdit.getText().toString());
         contact.saveInBackground();
       //  contact.pinInBackground();
         return contact;
