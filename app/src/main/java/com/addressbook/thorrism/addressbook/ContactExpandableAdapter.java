@@ -1,11 +1,14 @@
 package com.addressbook.thorrism.addressbook;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Typeface;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.HashMap;
@@ -26,7 +29,6 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         this.listData   = listData;
     }
 
-
     /**
      * Returns the Contact for a specific header in the ExpandableListView
      * @param groupPosition  - the header clicked
@@ -37,6 +39,19 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
     public Object getChild(int groupPosition, int childPosition) {
         return this.listData.get(this.listHeaders.get(groupPosition));
     }
+
+    public void addCallListenener(ImageView view, final Contact contact){
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent callIntent = new Intent(Intent.ACTION_CALL);
+                callIntent.setData(Uri.parse("tel:" + contact.getNumber()));
+                context.startActivity(callIntent);
+            }
+        });
+
+    }
+
 
     @Override
     public long getChildId(int groupPosition, int childPosition) {
@@ -59,6 +74,10 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         TextView contactCityStateZip = (TextView) convertView.findViewById(R.id.contactCityStateZip);
         TextView contactEmail        = (TextView) convertView.findViewById(R.id.contactEmail);
         TextView contactNumber       = (TextView) convertView.findViewById(R.id.contactNumber);
+        ImageView phoneIcon          = (ImageView) convertView.findViewById(R.id.callContactView);
+
+        //Add listener in order to call the contact
+        addCallListenener(phoneIcon, contact);
 
         //Set the values for the views from the contacts from their information
         contactName.setText(contact.getFirstName() + " " + contact.getLastName());

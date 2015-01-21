@@ -24,7 +24,7 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:visibility="gone"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="10dp"
         android:contentDescription="Remove Address Book"/>
 
     <ImageView
