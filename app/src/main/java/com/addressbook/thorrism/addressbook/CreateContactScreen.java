@@ -20,6 +20,7 @@ import com.parse.ParseException;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -140,15 +141,36 @@ public class CreateContactScreen extends Activity {
 
     /**
      * Capitalize the first letter for the argument string, and return the string back
-     * once done.
+     * once done. Also, it does this for every first letter within the string.
      *
      * @param s - input string to have first letter capitalized
      * @return the output from capitalizing the first letter
      */
     public String capitalizeFirstLetter(String s){
-        String tmp  = s.substring(1, s.length());
-        String tmp2 = Character.toString(s.charAt(0)).toUpperCase();
-        return tmp2+tmp;
+        List<String> words = new ArrayList<String>();
+        String current = "";
+        for(char c : s.toCharArray()){
+            if(c == ' '){
+                words.add(current);
+                current = "";
+            }
+            else current += c;
+        }
+        words.add(current);
+
+        String result = "";
+        if(words.size() > 1) { //If # of words found exceed more than one
+            for (String word : words) {
+                String tmp = word.substring(1, word.length());
+                String tmp2 = Character.toString(word.charAt(0)).toUpperCase();
+                result += tmp2 + tmp + ' ';
+            }
+        }else {                //Otherwise, just return the string with modified first letter
+            String tmp = s.substring(1, s.length());
+            String tmp2 = Character.toString(s.charAt(0)).toUpperCase();
+            result += tmp2 + tmp + ' ';
+        }
+        return result;
     }
 
     public Contact createContact(){
@@ -158,7 +180,7 @@ public class CreateContactScreen extends Activity {
         contact.setZipcode(Integer.parseInt((mZipcodeEdit.getText().toString())));
         contact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
         contact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
-        contact.setAddress(mAddressEdit.getText().toString());
+        contact.setAddress(capitalizeFirstLetter(mAddressEdit.getText().toString()));
         contact.setEmail(mEmailEdit.getText().toString());
         contact.setNumber(mNumberEdit.getText().toString());
         contact.saveInBackground();
@@ -181,12 +203,10 @@ public class CreateContactScreen extends Activity {
 
             @Override
             public void done(List<AddressBook> addressBooks, ParseException e) {
-                if(e == null){
-                    mBook = addressBooks.get(0);
-                    Log.e(DroidBook.TAG, "Book: " + mBook.getObjectId());
-                }else{
-                    e.printStackTrace();
+                if(e == null) mBook = addressBooks.get(0);
+                else{
                     Log.e(DroidBook.TAG, "Error: " + e.getMessage());
+                    e.printStackTrace();
                 }
             }
         });
@@ -202,7 +222,7 @@ public class CreateContactScreen extends Activity {
 
         @Override
         public Void doInBackground(Void... params) {
-            try {
+            try{
                 mBook.save();
             } catch (ParseException e) {
                 e.printStackTrace();

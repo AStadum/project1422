@@ -2,10 +2,17 @@ package com.addressbook.thorrism.addressbook;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -37,9 +44,9 @@ import java.util.List;
 public class BookScreen extends Activity {
 
     private SearchView mSearch;
-    private ListView mContactsView;
     private TextView mEmptyView;
     private AddressBook mBook;
+    private View mActiveContact;
     private String mBookId;
     private List<Contact> mContacts;
     private ProgressBar mContactSpinner;
@@ -49,14 +56,14 @@ public class BookScreen extends Activity {
     private ContactExpandableAdapter mAdapter;
     private List<String> mContactHeaders;
     private HashMap<String, Contact> mContactData;
+    private Vibrator mVibrator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.book_screen);
 
-        //Acquire the contacts list view
-        mContactsView   = (ListView) findViewById(R.id.contactsView);
+        //Acquire the XML objects
         mEmptyView      = (TextView) findViewById(R.id.currentBookView);
         mContactSpinner = (ProgressBar) findViewById(R.id.contactsSpinner);
         mContacts       = new ArrayList<Contact>();
@@ -66,15 +73,16 @@ public class BookScreen extends Activity {
         mExpandableView = (ExpandableListView) findViewById(R.id.contactsExpandableView);
         mContactHeaders = new ArrayList<String>();
         mContactData    = new HashMap<String, Contact>();
+        mVibrator       = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+
 
         //Set the action bar's icon to be the logo.
         ActionBar actionBar = getActionBar();
         actionBar.setIcon(R.drawable.ic_logo);
 
-        //Initialize the Parse instance.
+        //Initialize the Parse instance and fetch the user's contacts
         initParse();
         new FetchBookTask().execute(mBookId);
-       // new FetchBookTask().execute(mBookId);
     }
 
     /**
@@ -87,36 +95,12 @@ public class BookScreen extends Activity {
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12" );
     }
 
-//    /**
-//     * Fetch the AddressBook from the database with the specific name the user has selected
-//     * on the previous screen. Uses a query with two where clauses, one for matching userID
-//     * and one to match the name.
-//     * @param name - the name of the AddressBook we query from the database.
-//     */
-//    public void fetchBook(String name){
-//        ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
-//        bookQuery.whereEqualTo("objectId", name);
-//
-//        bookQuery.findInBackground(new FindCallback<AddressBook>() {
-//            @Override
-//            public void done(List<AddressBook> addressBooks, ParseException e) {
-//                if(e == null){
-//                    mBook     = addressBooks.get(0);
-//                    mContacts = mBook.getEntries();
-//                    Log.e(DroidBook.TAG, mBook.getBookName());
-//                    if(mContacts == null){
-//                        mEmptyView.setVisibility(View.VISIBLE);
-//                    }else{
-//                        displayContacts();
-//                    }
-//                }else{
-//                    e.printStackTrace();
-//                    Log.e(DroidBook.TAG, "Error: " + e.getMessage());
-//                }
-//            }
-//        });
-//    }
-
+    /**
+     * The purpose of this function is to return a custom comparator based on which option the
+     * user has selected.
+     * @param compare - the type of sort the user wants to perform
+     * @return custom comparator returned to sort the contacts based on the parameter chosen.
+     */
     public Comparator<Contact> getComparator(int compare){
         Comparator<Contact> result;
         //By zipcode, we check if zipcodes are equal if so, compare the names, if not just return zip codes
@@ -160,6 +144,12 @@ public class BookScreen extends Activity {
         return result;
     }
 
+    /**
+     * AsyncTask used for a two network operations. We query the database for all the contacts (a list)
+     * for the book we are currently interested in selected by the user. We must fetch the contacts
+     * that are within the list from the database too, since we only fetch a list when we get the
+     * Address Book's entries.
+     */
     private class FetchBookTask extends AsyncTask<String, Void, Boolean> {
 
         @Override
@@ -188,7 +178,7 @@ public class BookScreen extends Activity {
                 Collections.sort(mContacts, getComparator(0));
                 mBook.setEntries(mContacts);
 
-                //Fetch the contacts from the entries of the current address book
+                //For each contact, add their names to a new header
                 Contact contact;
                 for(int i=0; i<mContacts.size(); ++i){
                     if(mContactData.get(mContacts.get(i).getFirstName() + " " + mContacts.get(i).getLastName() ) == null) {
@@ -221,29 +211,61 @@ public class BookScreen extends Activity {
         }
     }
 
+    /**
+     * Create a new custom adapter for our ExpandableListView and populate the adapter with
+     * our contacts and headers containing the contact's names.
+     */
     public void displayList(){
         mAdapter = new ContactExpandableAdapter(this, mContactHeaders, mContactData);
         mExpandableView.setAdapter(mAdapter);
         addHeaderListeners();
     }
 
+    /**
+     * Clear the active contacts icons when we select another contact. If the current active contact
+     * is null, the function just returns.
+     */
+    public void clearActiveContact(){
+        //Check if null, otherwise hide the ImageViews from the active contact selected
+        if(mActiveContact == null) return;
+        ImageView removeIcon = (ImageView) mActiveContact.findViewById(R.id.contactRemoveBtn);
+        ImageView editIcon   = (ImageView) mActiveContact.findViewById(R.id.contactEditBtn);
+        removeIcon.setVisibility(View.GONE);
+        editIcon.setVisibility(View.GONE);
+    }
+
+    /**
+     * Add the listeners for the contact's which are headers in the ExpandableListView. When a group
+     * is expanded, clear the current contact's icons for edit / remove if they are visible.
+     */
     public void addHeaderListeners(){
 
-        mExpandableView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-
+        //When a group is expanded, hide the icons from the previously current contact selected
+        mExpandableView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onGroupExpand(int groupPosition) {
+                clearActiveContact();
+                mActiveContact = mExpandableView.getChildAt(groupPosition);
+            }
+        });
 
-                final int index = position;
-                View row = mExpandableView.getChildAt(position);
-                ImageView removeIcon = (ImageView) row.findViewById(R.id.contactRemoveBtn);
-                ImageView editIcon   = (ImageView) row.findViewById(R.id.contactEditBtn);
+        //On long click for a contact, make the edit / remove icons visible.
+        mExpandableView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                clearActiveContact();
+                mActiveContact = mExpandableView.getChildAt(position);
+                mVibrator.vibrate(100);
+
+                final ImageView removeIcon = (ImageView) mActiveContact.findViewById(R.id.contactRemoveBtn);
+                final ImageView editIcon   = (ImageView) mActiveContact.findViewById(R.id.contactEditBtn);
                 removeIcon.setVisibility(View.VISIBLE);
                 editIcon.setVisibility(View.VISIBLE);
+
                 removeIcon.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        removeContact(index);
+                        removeBookDialog(position, removeIcon, editIcon);
                     }
                 });
                 return true;
@@ -251,6 +273,53 @@ public class BookScreen extends Activity {
         });
     }
 
+    /**
+     * Opens a dialog box confirming if a user truly wants to delete a contact (confirmation)
+     * @param position
+     * @param exitIcon
+     * @param editIcon
+     */
+    public void removeBookDialog(final int position, final ImageView exitIcon, final ImageView editIcon) {
+        LayoutInflater inflater = LayoutInflater.from(this);
+
+        final View modifyBookView = inflater.inflate(R.layout.remove_book, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(modifyBookView);
+
+        builder.setCancelable(false)
+                .setNegativeButton("No", null)
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface i, int id) {
+                        removeContact(position);
+                    }
+                })
+                .setTitle("Remove Contact");
+
+        //Set the icon for the dialog window to the app's icon
+        builder.setIcon(R.drawable.ic_launcher);
+
+        //Build the dialog and create custom listeners for buttons
+        final AlertDialog dialog = builder.create();
+
+        //Remove the icons for the contact edit / remove to be visible
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+                exitIcon.setVisibility(View.GONE);
+                editIcon.setVisibility(View.GONE);
+            }
+        });
+
+        dialog.show();
+    }
+
+    /**
+     * When the user clickes the remove button, and confirms it, we delete the contact from
+     * the database in the background, update the associated Address book and save it, and
+     * then we finish up by alerting the user the contact was deleted with a Toast.
+     * @param position
+     */
     public void removeContact(int position){
         Contact contact = mContacts.get(position);
         mBook.removeEntry(position);
@@ -273,88 +342,6 @@ public class BookScreen extends Activity {
         //Update the display to show contact removed
         displayList();
     }
-
-
-//    /**
-//     * Fetch the AddressBook from the database with the specific name the user has selected
-//     * on the previous screen. Uses a query with two where clauses, one for matching userID
-//     * and one to match the name.
-//     */
-//    private class FetchBookTask extends AsyncTask<String, Void, Boolean> {
-//
-//        @Override
-//        protected void onPreExecute(){
-//            mContactSpinner.setVisibility(View.VISIBLE);
-//        }
-//
-//        @Override
-//        protected Boolean doInBackground(String... params){
-//            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
-//            bookQuery.whereEqualTo("objectId", params[0]);
-//
-//            try{
-//                List<AddressBook> books = bookQuery.find();
-//                mBook = books.get(0);
-//                mContacts = mBook.getEntries();
-//
-//                //Fetch the contacts from the entries of the current address book
-//                for(Contact contact: mContacts){
-//                    contact.fetchIfNeeded();
-//                }
-//
-//                //Attempt to sort the contacts list by first name
-//                Collections.sort(mContacts, new Comparator<Contact>() {
-//                    @Override
-//                    public int compare(Contact lhs, Contact rhs) {
-//                        return lhs.getFirstName().compareTo(rhs.getFirstName());
-//                    }
-//                });
-//
-//                return true;
-//            }catch(ParseException e){
-//                e.printStackTrace();
-//                Log.e(DroidBook.TAG, "Error: " + e.getMessage());
-//            }
-//
-//            return false;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Boolean result){
-//            if(result){
-//                if(mContacts == null){
-//                    mEmptyView.setVisibility(View.VISIBLE);
-//                }else{
-//                    displayContacts();
-//                }
-//            }
-//            mContactSpinner.setVisibility(View.GONE);
-//        }
-//    }
-
-//    /**
-//     * Add the adapter to our ListView and populate it with our Contacts
-//     */
-//    public void displayContacts(){
-//        Log.e(DroidBook.TAG, "Starting to add..");
-//        ContactAdapter adapter = new ContactAdapter(this,
-//                                                    R.layout.contact_item_view,
-//                                                    mContacts);
-//
-//        if(mContacts.size() == 0) mEmptyView.setVisibility(View.VISIBLE);
-//        else{
-//            mEmptyView.setVisibility(View.INVISIBLE);
-//            mContactsView.setVisibility(View.VISIBLE);
-//        }
-//
-//        //Attach the ContactAdapter to the Contacts ListView
-//        mContactsView.setAdapter(adapter);
-//        mContactsView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//            }
-//        });
-//    }
 
     /**
      * Add a listener for the search view when a user queries by inputting a contact name.
@@ -436,18 +423,23 @@ public class BookScreen extends Activity {
         return super.onCreateOptionsMenu(menu);
     }
 
+    /**
+     * Purpose is to check if the spinner is active when the app is paused or destroyed. If so,
+     * we set it to gone because otherwise it stays spinning forever until an add action is
+     * performed.
+     */
     public void checkSpinnerStatus(){
         if(mContactSpinner.getVisibility() == View.VISIBLE){
             mContactSpinner.setVisibility(View.GONE);
         }
     }
+
     /**
      * Deal with the Android lifecycle.
      */
     @Override
     public void onResume(){
         super.onResume();
-        Log.e(DroidBook.TAG, "Resumed!");
         if(mBook != null && mContacts != null){
             new FetchBookTask().execute(mBookId);
         }
@@ -456,7 +448,6 @@ public class BookScreen extends Activity {
     @Override
     public void onPause(){
         super.onPause();
-        Log.e(DroidBook.TAG, "Paused!");
         checkSpinnerStatus();
     }
 
