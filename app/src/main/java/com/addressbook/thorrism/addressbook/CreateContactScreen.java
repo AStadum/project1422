@@ -2,6 +2,7 @@ package com.addressbook.thorrism.addressbook;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -89,7 +90,7 @@ public class CreateContactScreen extends Activity {
                     if(hasFocus){
                         mCurrentEdit = (EditText) v;
                         v.setBackgroundDrawable(getResources().getDrawable(R.drawable.edit_text_form_selected));
-                        mScrollView.scrollTo((int)v.getX(), (int)v.getY());
+                        mScrollView.scrollTo((int)v.getX(), (int)v.getY()-75);
                     }
                     else v.setBackgroundDrawable(getResources().getDrawable(R.drawable.edit_text_form));
                 }
@@ -97,7 +98,7 @@ public class CreateContactScreen extends Activity {
                     if(hasFocus){
                         mCurrentEdit = (EditText) v;
                         v.setBackground(getResources().getDrawable(R.drawable.edit_text_form_selected));
-                        mScrollView.scrollTo(0, (int) v.getY());
+                        mScrollView.scrollTo(0, (int) v.getY()-75);
                     }
                     else v.setBackground(getResources().getDrawable(R.drawable.edit_text_form));
                 }
@@ -177,12 +178,27 @@ public class CreateContactScreen extends Activity {
         Contact contact = new Contact();
         contact.setFirstName(capitalizeFirstLetter(mFirstNameEdit.getText().toString()));
         contact.setLastName(capitalizeFirstLetter(mLastNameEdit.getText().toString()));
-        contact.setZipcode(Integer.parseInt((mZipcodeEdit.getText().toString())));
-        contact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
-        contact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
-        contact.setAddress(capitalizeFirstLetter(mAddressEdit.getText().toString()));
-        contact.setEmail(mEmailEdit.getText().toString());
-        contact.setNumber(mNumberEdit.getText().toString());
+        String zip = mZipcodeEdit.getText().toString();
+
+        //Do input checking on the zip code. Make sure the user submits a valid one
+        if(!checkZipInput(zip)){
+            createToast("Please enter a valid zipcode!");
+            return null;
+        }
+        else
+            contact.setZipcode(zip);
+
+        //Only set the values if there is input
+        if(mStateEdit.getText().toString().length() != 0)
+            contact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
+        if(mCityEdit.getText().toString().length() != 0)
+            contact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
+        if(mAddressEdit.getText().toString().length() != 0)
+            contact.setAddress(capitalizeFirstLetter(mAddressEdit.getText().toString()));
+        if(mEmailEdit.getText().toString().length() != 0)
+            contact.setEmail(mEmailEdit.getText().toString());
+        if(mNumberEdit.getText().toString().length() != 0)
+            contact.setNumber(mNumberEdit.getText().toString());
         contact.saveInBackground();
       //  contact.pinInBackground();
         return contact;
@@ -235,8 +251,36 @@ public class CreateContactScreen extends Activity {
         public void onPostExecute(Void result) {
             mProgressBar.setVisibility(View.GONE);
             mScrollView.setVisibility(View.VISIBLE);
+            SharedPreferences prefs = getApplicationContext().getSharedPreferences("ADD_STATE", MODE_PRIVATE);
+            prefs.edit().putString("STATE", "NEW").apply();
             onBackPressed();
         }
+    }
+
+    public boolean checkZipInput(String zip){
+        boolean result = false;
+
+        //If the input is supposed to a 5 integer input for zipcode
+        if(zip.length() == 5) {
+            for (char c : zip.toCharArray()) {
+                if ((int) c >= 48 && (int) c <= 57) result = true;
+                else return false;
+            }
+        }
+
+        //If the input is supposed to a 5 integer - 4 integer for zipcode
+        if(zip.length() == 10){
+            if (zip.charAt(5) != '-') return false;
+            else{
+                for (char c : zip.toCharArray()){
+                    if ((int) c >= 48 && (int) c <= 57) result = true;
+                    else {
+                        if (c != '-') return false;
+                    }
+                }
+            }
+        }
+        return result;
     }
 
     /**

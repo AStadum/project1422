@@ -52,7 +52,7 @@
             android:theme="@android:style/Theme.Holo" >
         </activity>
         <activity
-            android:name=".BookScreen"
+            android:name=".ContactsScreen"
             android:configChanges="orientation"
             android:screenOrientation="portrait"
             android:theme="@android:style/Theme.Holo" >

@@ -3,11 +3,10 @@ package com.addressbook.thorrism.addressbook;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -20,14 +19,11 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.DeleteCallback;
-import com.parse.FindCallback;
 import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseObject;
@@ -41,9 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 
 
-public class BookScreen extends Activity {
-
-    private SearchView mSearch;
+public class ContactsScreen extends Activity {
     private TextView mEmptyView;
     private AddressBook mBook;
     private View mActiveContact;
@@ -57,6 +51,7 @@ public class BookScreen extends Activity {
     private List<String> mContactHeaders;
     private HashMap<String, Contact> mContactData;
     private Vibrator mVibrator;
+    private Comparator<Contact> mComparator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,7 +69,7 @@ public class BookScreen extends Activity {
         mContactHeaders = new ArrayList<String>();
         mContactData    = new HashMap<String, Contact>();
         mVibrator       = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-
+        setComparator(1);
 
         //Set the action bar's icon to be the logo.
         ActionBar actionBar = getActionBar();
@@ -101,16 +96,15 @@ public class BookScreen extends Activity {
      * @param compare - the type of sort the user wants to perform
      * @return custom comparator returned to sort the contacts based on the parameter chosen.
      */
-    public Comparator<Contact> getComparator(int compare){
-        Comparator<Contact> result;
+    public void setComparator(int compare){
+        Comparator<Contact> result = null;
         //By zipcode, we check if zipcodes are equal if so, compare the names, if not just return zip codes
         if(compare == 0) {
-
-            Log.e("Zipsort", "Zipsort");
             result = new Comparator<Contact>() {
                 @Override
                 public int compare(Contact lhs, Contact rhs) {
-                    int val = lhs.getZipcode() - rhs.getZipcode();
+                    int val = lhs.getZipcode().compareTo(rhs.getZipcode());
+                    Log.e("TEST", "SORT BY ZIPCODE");
                     if (val == 0)
                         return (lhs.getFirstName() + lhs.getLastName()).compareTo(rhs.getFirstName() + rhs.getLastName());
                     else return val;
@@ -118,30 +112,20 @@ public class BookScreen extends Activity {
             };
         }
         //By last name sort, just compare last names
-        else if(compare == 1) {
+        if(compare == 1) {
             result = new Comparator<Contact>() {
                 @Override
                 public int compare(Contact lhs, Contact rhs) {
                     int val = lhs.getLastName().compareTo(rhs.getLastName());
+                    Log.e("TEST", "SORT BY LAST NAME");
                     if (val == 0)
                         return (lhs.getFirstName() + lhs.getLastName()).compareTo((rhs.getFirstName() + rhs.getLastName()));
                     else return val;
                 }
             };
         }
-        else{
-            Log.e("Default", "Default");
-            result = new Comparator<Contact>() {
-                @Override
-                public int compare(Contact lhs, Contact rhs) {
-                    int val = lhs.getFirstName().compareTo(rhs.getFirstName());
-                    if(val == 0)
-                        return (lhs.getFirstName() + lhs.getLastName()).compareTo((rhs.getFirstName() + rhs.getLastName()));
-                    else return val;
-                }
-            };
-        }
-        return result;
+
+        mComparator = result;
     }
 
     /**
@@ -175,17 +159,15 @@ public class BookScreen extends Activity {
                 }
 
                 //Attempt to sort the contacts list by first name
-                Collections.sort(mContacts, getComparator(0));
+                Collections.sort(mContacts, mComparator);
                 mBook.setEntries(mContacts);
 
                 //For each contact, add their names to a new header
                 Contact contact;
                 for(int i=0; i<mContacts.size(); ++i){
-                    if(mContactData.get(mContacts.get(i).getFirstName() + " " + mContacts.get(i).getLastName() ) == null) {
-                        contact = mContacts.get(i);
-                        mContactHeaders.add(contact.getFirstName() + " " + contact.getLastName());
-                        mContactData.put(mContactHeaders.get(mContactData.size()), contact);
-                    }
+                    contact = mContacts.get(i);
+                    mContactHeaders.add(contact.getFirstName() + " " + contact.getLastName());
+                    mContactData.put(mContactHeaders.get(mContactData.size()), contact);
                 }
                 return true;
             }catch(ParseException e){
@@ -211,6 +193,39 @@ public class BookScreen extends Activity {
         }
     }
 
+
+    private class SortContactsTask extends AsyncTask<Void, Void, Void>{
+
+        @Override
+        public void onPreExecute(){
+            mContactSpinner.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public Void doInBackground(Void... params){
+            mContactHeaders.clear();
+            mContactData.clear();
+
+            //Attempt to sort the contacts list by first name
+            Collections.sort(mContacts, mComparator);
+            mBook.setEntries(mContacts);
+
+            //For each contact, add their names to a new header
+            Contact contact;
+            for(int i=0; i<mContacts.size(); ++i){
+                contact = mContacts.get(i);
+                mContactHeaders.add(contact.getFirstName() + " " + contact.getLastName());
+                mContactData.put(mContactHeaders.get(mContactData.size()), contact);
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result){
+            displayList();
+            mContactSpinner.setVisibility(View.GONE);
+        }
+    }
     /**
      * Create a new custom adapter for our ExpandableListView and populate the adapter with
      * our contacts and headers containing the contact's names.
@@ -344,24 +359,6 @@ public class BookScreen extends Activity {
     }
 
     /**
-     * Add a listener for the search view when a user queries by inputting a contact name.
-     */
-    public void addSearchListener(){
-        mSearch.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                return true;
-            }
-        });
-    }
-
-    /**
      * A toast method for testing purposes. Easier than typing each time lol
      */
     public void createToast(String s){
@@ -411,15 +408,25 @@ public class BookScreen extends Activity {
         }
     }
 
+    /**
+     * OnClick methods used by the MenuItems under settings to sort the user's contacts
+     * based on what they chose.
+     * @param i
+     */
+    public void sortByLast(MenuItem i){
+        setComparator(1);
+        new SortContactsTask().execute();
+    }
+
+    public void sortByZip(MenuItem i){
+        setComparator(0);
+        new SortContactsTask().execute();
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.home_screen, menu);
-
-        //Acquire the search view and manager for the search view, and add a search listener.
-        mSearch  = (SearchView) menu.findItem(R.id.action_search).getActionView();
-        addSearchListener();
-
+        inflater.inflate(R.menu.contact_screen, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -441,7 +448,11 @@ public class BookScreen extends Activity {
     public void onResume(){
         super.onResume();
         if(mBook != null && mContacts != null){
-            new FetchBookTask().execute(mBookId);
+            SharedPreferences prefs = getApplicationContext().getSharedPreferences("ADD_STATE", MODE_PRIVATE);
+            if(prefs.getString("STATE", "").equals("NEW")) {
+                new FetchBookTask().execute(mBookId);
+                prefs.edit().putString("STATE", "UPDATED").apply();
+            }
         }
     }
 
@@ -467,6 +478,6 @@ public class BookScreen extends Activity {
     /*Prevent the user from returning to the splash screen (it is done)*/
     @Override
     public void onBackPressed(){
-        return;
+        super.onBackPressed();
     }
 }

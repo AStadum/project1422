@@ -119,7 +119,7 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         }
 
         TextView listHeader = (TextView) convertView.findViewById(R.id.contactHeader);
-        listHeader.setTypeface(null, Typeface.BOLD);
+        DroidBook.setFontRoboto(listHeader, this.context);
         listHeader.setText(headerTitle);
 
         return convertView;

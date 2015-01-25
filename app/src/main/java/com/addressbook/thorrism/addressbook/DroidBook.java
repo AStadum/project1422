@@ -2,11 +2,13 @@ package com.addressbook.thorrism.addressbook;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Typeface;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.parse.ParseUser;
 
@@ -80,8 +82,16 @@ public class DroidBook {
     /**
     * Close the keyboard if we don't want it to show anymore
     */
-    public void hideKeyboard(EditText editText, Context ctx){
+    public static void hideKeyboard(EditText editText, Context ctx){
         InputMethodManager mgr = (InputMethodManager) ctx.getSystemService(Context.INPUT_METHOD_SERVICE);
         mgr.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+    }
+
+    /**
+     * Set a TextView's font to roboto font from assets folder
+     */
+    public static void setFontRoboto(TextView view, Context ctx){
+        Typeface tf = Typeface.createFromAsset(ctx.getAssets(), "roboto.ttf");
+        view.setTypeface(tf);
     }
 }

@@ -12,8 +12,8 @@
         android:text="@string/book_item_header"
         android:textSize="30sp"
         android:textStyle="bold"
-        android:textColor="#444"
-        android:background="#fff"
+        android:textColor="#999"
+        android:background="#000"
         android:padding="10dp"
         android:gravity="center_horizontal"
         />

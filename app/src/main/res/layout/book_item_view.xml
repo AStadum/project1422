@@ -11,7 +11,7 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:id="@+id/bookNameView"
-        android:textColor="#fff"
+        android:textColor="#abd123"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="20sp"
         android:padding="10dp"/>
@@ -24,7 +24,8 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
         android:visibility="gone"
-        android:layout_marginTop="10dp"
+        android:paddingRight="10dp"
+        android:layout_marginBottom="5dp"
         android:contentDescription="Remove Address Book"/>
 
     <ImageView

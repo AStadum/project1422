@@ -18,7 +18,6 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -31,8 +30,6 @@ import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.ParseUser;
-
-import org.json.JSONArray;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +52,7 @@ public class BookSelectionScreen extends Activity {
         mBooksView   = (ListView) findViewById(R.id.booksList);
         mProgressBar = (ProgressBar) findViewById(R.id.querySpinner);
         mVibrator    = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        DroidBook.setFontRoboto(mEmptyView, this);
 
         //Set the action b/ar's icon to be the logo.
         ActionBar actionBar = getActionBar();
@@ -63,8 +61,10 @@ public class BookSelectionScreen extends Activity {
         //Add some listeners
         addBooksViewListener();
 
-        //Initialize Parse
+        //Initialize Parse and the ListView fpr the Address Books
         initParse();
+        mBooks = new ArrayList<AddressBook>();
+        displayBooks();
         new QueryBooksTask().execute();
     }
 
@@ -181,10 +181,14 @@ public class BookSelectionScreen extends Activity {
      */
     public void displayBooks(){
         BookAdapter adapter = new BookAdapter(this, R.layout.book_item_view, mBooks);
-        View header = (View) getLayoutInflater().inflate(R.layout.book_item_header, null);
 
         //Only had the header if one doesn't already exist
-        if(mBooksView.getHeaderViewsCount() == 0) mBooksView.addHeaderView(header);
+        if(mBooksView.getHeaderViewsCount() == 0){
+            View header = (View) getLayoutInflater().inflate(R.layout.book_item_header, null);
+            mBooksView.addHeaderView(header);
+            TextView headerTitle = (TextView) header.findViewById(R.id.bookItemHeader);
+            DroidBook.setFontRoboto(headerTitle, this);
+        }
 
         //Check if the size of books List is 0. If so, show empty view, otherwise remove empty view
         if(mBooks.size() == 0) mEmptyView.setVisibility(View.VISIBLE);
@@ -221,7 +225,7 @@ public class BookSelectionScreen extends Activity {
                 clearActiveBook();
                 mActiveBook = mBooksView.getChildAt(position);
                 if(position == 0) return; //Don't perform action on the header item
-                Intent intent = new Intent(getApplicationContext(), BookScreen.class);
+                Intent intent = new Intent(getApplicationContext(), ContactsScreen.class);
                 AddressBook book = mBooks.get(position-1);
                 intent.putExtra("BookId", book.getObjectId());
                 startActivity(intent);
@@ -381,7 +385,9 @@ public class BookSelectionScreen extends Activity {
                 .setPositiveButton("Add",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface i, int id) {
-                                createBookAndDisplay(bookNameEdit.getText().toString());
+                                String name = bookNameEdit.getText().toString();
+                                if(name.length() == 0) createToast("Please enter a valid name.");
+                                else createBookAndDisplay(name);
                             }
                         })
                 .setTitle("Create New Book");
@@ -401,6 +407,7 @@ public class BookSelectionScreen extends Activity {
 
         final View modifyBookView       = inflater.inflate(R.layout.modify_book, null);
         final EditText modifyBookEdit   = (EditText) modifyBookView.findViewById(R.id.bookNameEdit);
+        modifyBookEdit.setText(mBooks.get(position).getBookName());
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(modifyBookView);
@@ -426,10 +433,14 @@ public class BookSelectionScreen extends Activity {
                 editBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        mBooks.get(position).setBookName(modifyBookEdit.getText().toString());
-                        mBooks.get(position).saveInBackground();
-                        displayBooks();
-                        dialog.dismiss();
+                        String name = modifyBookEdit.getText().toString();
+                        if(name.length() == 0) createToast("Please enter a valid name.");
+                        else {
+                            mBooks.get(position).setBookName(name);
+                            mBooks.get(position).saveInBackground();
+                            displayBooks();
+                            dialog.dismiss();
+                        }
                     }
                 });
 
@@ -437,7 +448,7 @@ public class BookSelectionScreen extends Activity {
                 cancelBtn.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        DroidBook.getInstance().hideKeyboard(modifyBookEdit, getApplicationContext());
+                        DroidBook.hideKeyboard(modifyBookEdit, getApplicationContext());
                         dialog.dismiss();
                     }
                 });

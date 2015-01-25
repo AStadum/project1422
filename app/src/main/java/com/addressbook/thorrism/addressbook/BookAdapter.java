@@ -37,6 +37,7 @@ public class BookAdapter extends ArrayAdapter<AddressBook> {
 
             ImageView exitIcon = (ImageView) convertView.findViewById(R.id.exitViewIcon);
             TextView bookName  = (TextView) convertView.findViewById(R.id.bookNameView);
+            DroidBook.setFontRoboto(bookName, mContext);
             holder = new BookHolder(exitIcon, bookName);
             convertView.setTag(holder);
         }else {

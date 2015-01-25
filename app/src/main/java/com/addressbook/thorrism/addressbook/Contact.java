@@ -43,11 +43,11 @@ public class Contact extends ParseObject{
         put("address", address);
     }
 
-    public int getZipcode() {
-        return getInt("zipcode");
+    public String getZipcode() {
+        return getString("zipcode");
     }
 
-    public void setZipcode(int zipcode) {
+    public void setZipcode(String zipcode) {
         put("zipcode", zipcode);
     }
 

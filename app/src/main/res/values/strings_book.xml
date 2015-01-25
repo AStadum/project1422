@@ -22,7 +22,7 @@
     <string name="book_name">Address Book Name</string>
     <string name="book_add_name">Book name: </string>
     <string name="book_add_hint">Name</string>
-    <string name="book_item_header">Your Address Books</string>
+    <string name="book_item_header">Address Books</string>
     <string name="book_remove">Remove</string>
     <string name="book_edit">Edit Name</string>
     <string name="book_modify">Choose option</string>
@@ -32,5 +32,7 @@
     <string name="contact_item_header">A</string>
     <string name="return_to_books">Return to Address Books</string>
     <string name="remove_book_message">Are you sure?</string>
+    <string name="sort_zip">Sort by Zipcode</string>
+    <string name="sort_last">Sort by Last</string>
 
 </resources>
