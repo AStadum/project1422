@@ -2,7 +2,9 @@ package com.addressbook.thorrism.addressbook;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,6 +12,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -40,6 +43,8 @@ public class CreateContactScreen extends Activity {
     private Button   mAddBtn;
     private Button   mCancelBtn;
     private EditText mCurrentEdit;
+    private Activity mActivity;
+    private boolean mViewState;
     private AddressBook mBook;
 
     @Override
@@ -64,6 +69,7 @@ public class CreateContactScreen extends Activity {
         mAddBtn        = (Button) findViewById(R.id.addContactBtn);
         mCancelBtn     = (Button) findViewById(R.id.cancelContactBtn);
         mProgressBar   = (ProgressBar) findViewById(R.id.addContactsSpinner);
+        mActivity      = this;
 
         //Add listeners to the EditText fields
         addFocusListener(mFirstNameEdit);
@@ -83,24 +89,27 @@ public class CreateContactScreen extends Activity {
     }
 
     public void addFocusListener(EditText v){
+;
+
         v.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 //Check if the Version is JELLY BEAN, if so use deprecated setBackground method.
                 if(android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
                     if(hasFocus){
                         mCurrentEdit = (EditText) v;
+                        mScrollView.scrollTo(0, (int) v.getY() - 200);
                         v.setBackgroundDrawable(getResources().getDrawable(R.drawable.edit_text_form_selected));
-                        mScrollView.scrollTo((int)v.getX(), (int)v.getY()-75);
                     }
                     else v.setBackgroundDrawable(getResources().getDrawable(R.drawable.edit_text_form));
                 }
                 else{
                     if(hasFocus){
                         mCurrentEdit = (EditText) v;
+                        mScrollView.scrollTo(0, (int) v.getY() - 200);
                         v.setBackground(getResources().getDrawable(R.drawable.edit_text_form_selected));
-                        mScrollView.scrollTo(0, (int) v.getY()-75);
                     }
-                    else v.setBackground(getResources().getDrawable(R.drawable.edit_text_form));
+                    else
+                        v.setBackground(getResources().getDrawable(R.drawable.edit_text_form));
                 }
             }
         });
@@ -135,7 +144,7 @@ public class CreateContactScreen extends Activity {
             @Override
             public void onClick(View v) {
                 DroidBook.getInstance().hideKeyboard(mCurrentEdit, getApplicationContext());
-                onBackPressed();
+                mActivity.finish();
             }
         });
     }
@@ -171,13 +180,23 @@ public class CreateContactScreen extends Activity {
             String tmp2 = Character.toString(s.charAt(0)).toUpperCase();
             result += tmp2 + tmp + ' ';
         }
-        return result;
+        return result.substring(0, result.length()-1);
     }
 
     public Contact createContact(){
         Contact contact = new Contact();
-        contact.setFirstName(capitalizeFirstLetter(mFirstNameEdit.getText().toString()));
-        contact.setLastName(capitalizeFirstLetter(mLastNameEdit.getText().toString()));
+        if(mFirstNameEdit.getText().toString().length() != 0)
+            contact.setFirstName(capitalizeFirstLetter(mFirstNameEdit.getText().toString()));
+        else {
+            createToast("Please enter a first name!");
+            return null;
+        }
+
+        if(mLastNameEdit.getText().toString().length() != 0)
+            contact.setLastName(capitalizeFirstLetter(mLastNameEdit.getText().toString()));
+        else
+            contact.setLastName("");
+
         String zip = mZipcodeEdit.getText().toString();
 
         //Do input checking on the zip code. Make sure the user submits a valid one
@@ -191,14 +210,24 @@ public class CreateContactScreen extends Activity {
         //Only set the values if there is input
         if(mStateEdit.getText().toString().length() != 0)
             contact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
+        else
+            contact.setState("");
         if(mCityEdit.getText().toString().length() != 0)
             contact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
+        else
+            contact.setCity("");
         if(mAddressEdit.getText().toString().length() != 0)
             contact.setAddress(capitalizeFirstLetter(mAddressEdit.getText().toString()));
+        else
+            contact.setAddress("");
         if(mEmailEdit.getText().toString().length() != 0)
             contact.setEmail(mEmailEdit.getText().toString());
+        else
+            contact.setEmail("");
         if(mNumberEdit.getText().toString().length() != 0)
             contact.setNumber(mNumberEdit.getText().toString());
+        else
+            contact.setNumber("");
         contact.saveInBackground();
       //  contact.pinInBackground();
         return contact;
@@ -304,6 +333,12 @@ public class CreateContactScreen extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed(){
+        //Clear the focus from the current edit text
+        super.onBackPressed();
     }
 
     /**

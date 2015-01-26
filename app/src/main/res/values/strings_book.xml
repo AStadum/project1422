@@ -13,8 +13,8 @@
     <string name="create_contact">Create Contact</string>
     <string name="first_name">First Name</string>
     <string name="last_name">Last Name</string>
-    <string name="address_input">Address</string>
-    <string name="zipcode_input">Zipcode</string>
+    <string name="address_input">Street</string>
+    <string name="zipcode_input">ZIP code</string>
     <string name="number_input">Number</string>
     <string name="email_input">Email</string>
     <string name="state_input">State</string>
@@ -32,7 +32,7 @@
     <string name="contact_item_header">A</string>
     <string name="return_to_books">Return to Address Books</string>
     <string name="remove_book_message">Are you sure?</string>
-    <string name="sort_zip">Sort by Zipcode</string>
-    <string name="sort_last">Sort by Last</string>
+    <string name="sort_zip">Sort by ZIP code</string>
+    <string name="sort_last">Sort by Name</string>
 
 </resources>

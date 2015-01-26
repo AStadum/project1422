@@ -69,7 +69,7 @@ public class ContactsScreen extends Activity {
         mContactHeaders = new ArrayList<String>();
         mContactData    = new HashMap<String, Contact>();
         mVibrator       = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        setComparator(1);
+        setComparator(2);
 
         //Set the action bar's icon to be the logo.
         ActionBar actionBar = getActionBar();
@@ -104,7 +104,6 @@ public class ContactsScreen extends Activity {
                 @Override
                 public int compare(Contact lhs, Contact rhs) {
                     int val = lhs.getZipcode().compareTo(rhs.getZipcode());
-                    Log.e("TEST", "SORT BY ZIPCODE");
                     if (val == 0)
                         return (lhs.getFirstName() + lhs.getLastName()).compareTo(rhs.getFirstName() + rhs.getLastName());
                     else return val;
@@ -117,7 +116,19 @@ public class ContactsScreen extends Activity {
                 @Override
                 public int compare(Contact lhs, Contact rhs) {
                     int val = lhs.getLastName().compareTo(rhs.getLastName());
-                    Log.e("TEST", "SORT BY LAST NAME");
+                    if (val == 0)
+                        return (lhs.getFirstName() + lhs.getLastName()).compareTo((rhs.getFirstName() + rhs.getLastName()));
+                    else return val;
+                }
+            };
+        }
+
+        //By last name sort, just compare last names
+        if(compare == 2) {
+            result = new Comparator<Contact>() {
+                @Override
+                public int compare(Contact lhs, Contact rhs) {
+                    int val = lhs.getFirstName().compareTo(rhs.getFirstName());
                     if (val == 0)
                         return (lhs.getFirstName() + lhs.getLastName()).compareTo((rhs.getFirstName() + rhs.getLastName()));
                     else return val;
@@ -245,8 +256,10 @@ public class ContactsScreen extends Activity {
         if(mActiveContact == null) return;
         ImageView removeIcon = (ImageView) mActiveContact.findViewById(R.id.contactRemoveBtn);
         ImageView editIcon   = (ImageView) mActiveContact.findViewById(R.id.contactEditBtn);
-        removeIcon.setVisibility(View.GONE);
-        editIcon.setVisibility(View.GONE);
+        if(removeIcon != null && editIcon != null){
+            removeIcon.setVisibility(View.GONE);
+            editIcon.setVisibility(View.GONE);
+        }
     }
 
     /**
@@ -264,25 +277,34 @@ public class ContactsScreen extends Activity {
             }
         });
 
+        mExpandableView.setOnGroupCollapseListener(new ExpandableListView.OnGroupCollapseListener() {
+            @Override
+            public void onGroupCollapse(int groupPosition) {
+                clearActiveContact();
+            }
+        });
+
         //On long click for a contact, make the edit / remove icons visible.
         mExpandableView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
             public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
                 clearActiveContact();
-                mActiveContact = mExpandableView.getChildAt(position);
                 mVibrator.vibrate(100);
+                mActiveContact = mExpandableView.getChildAt(position);
 
                 final ImageView removeIcon = (ImageView) mActiveContact.findViewById(R.id.contactRemoveBtn);
                 final ImageView editIcon   = (ImageView) mActiveContact.findViewById(R.id.contactEditBtn);
-                removeIcon.setVisibility(View.VISIBLE);
-                editIcon.setVisibility(View.VISIBLE);
+                if(removeIcon != null && editIcon != null) {
+                    removeIcon.setVisibility(View.VISIBLE);
+                    editIcon.setVisibility(View.VISIBLE);
 
-                removeIcon.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        removeBookDialog(position, removeIcon, editIcon);
-                    }
-                });
+                    removeIcon.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            removeContactDialog(position, removeIcon, editIcon);
+                        }
+                    });
+                }
                 return true;
             }
         });
@@ -294,7 +316,7 @@ public class ContactsScreen extends Activity {
      * @param exitIcon
      * @param editIcon
      */
-    public void removeBookDialog(final int position, final ImageView exitIcon, final ImageView editIcon) {
+    public void removeContactDialog(final int position, final ImageView exitIcon, final ImageView editIcon) {
         LayoutInflater inflater = LayoutInflater.from(this);
 
         final View modifyBookView = inflater.inflate(R.layout.remove_book, null);

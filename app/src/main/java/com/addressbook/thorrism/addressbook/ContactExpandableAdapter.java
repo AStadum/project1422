@@ -52,7 +52,6 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
 
     }
 
-
     @Override
     public long getChildId(int groupPosition, int childPosition) {
         return childPosition;
@@ -75,16 +74,45 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         TextView contactEmail        = (TextView) convertView.findViewById(R.id.contactEmail);
         TextView contactNumber       = (TextView) convertView.findViewById(R.id.contactNumber);
         ImageView phoneIcon          = (ImageView) convertView.findViewById(R.id.callContactView);
-
-        //Add listener in order to call the contact
-        addCallListenener(phoneIcon, contact);
+        phoneIcon.setVisibility(View.GONE);
 
         //Set the values for the views from the contacts from their information
-        contactName.setText(contact.getFirstName() + " " + contact.getLastName());
-        contactAddress.setText(contact.getAddress());
-        contactCityStateZip.setText(contact.getCity() + ", " + contact.getState() + " " + contact.getZipcode());
-        contactEmail.setText(contact.getEmail());
-        contactNumber.setText(contact.getNumber());
+        if(!contact.getFirstName().equals("")) {
+            contactName.setText(contact.getFirstName() + " " + contact.getLastName());
+            contactName.setVisibility(View.VISIBLE);
+        }
+        if(!contact.getAddress().equals("")) {
+            contactAddress.setText(contact.getAddress());
+            contactAddress.setVisibility(View.VISIBLE);
+        }
+        else
+            contactAddress.setVisibility(View.GONE);
+
+        if(contact.getCity().equals(""))
+            contactCityStateZip.setText(contact.getState() + " " + contact.getZipcode());
+
+        if(contact.getState().equals(""))
+            contactCityStateZip.setText(contact.getCity() + " " + contact.getZipcode());
+
+        if(!contact.getCity().equals("") && !contact.getState().equals("") && !contact.getZipcode().equals(""))
+            contactCityStateZip.setText(contact.getCity() + ", " + contact.getState() + " " + contact.getZipcode());
+
+        if(contact.getCity().equals("") && contact.getState().equals(""))
+            contactCityStateZip.setText(contact.getZipcode());
+
+        if(!contact.getEmail().equals("")) {
+            contactEmail.setText(contact.getEmail());
+            contactEmail.setVisibility(View.VISIBLE);
+        }
+        else contactEmail.setVisibility(View.GONE);
+
+        if(!contact.getNumber().equals("")) {
+            contactNumber.setText(contact.getNumber());
+            phoneIcon.setVisibility(View.VISIBLE);
+            contactNumber.setVisibility(View.VISIBLE);
+        }
+        else
+            contactNumber.setVisibility(View.GONE);
 
         return convertView;
     }

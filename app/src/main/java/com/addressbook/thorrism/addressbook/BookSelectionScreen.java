@@ -92,18 +92,14 @@ public class BookSelectionScreen extends Activity {
 
         @Override
         protected Pair<Integer, String> doInBackground(String... params){
-            ParseQuery<AddressBook> nameQuery = ParseQuery.getQuery(AddressBook.class);
-            nameQuery.whereEqualTo("bookName", params[0]);
             Pair<Integer, String> pair;
-
-            try{
-                pair = new Pair<Integer, String>(nameQuery.count(), params[0]);
-                return pair;
-            }catch(ParseException e){
-                Log.e(DroidBook.getInstance().TAG, e.getMessage());
-                e.printStackTrace();
-                return null;
+            int count = 0;
+            for(AddressBook book : mBooks){
+                if(book.getBookName().equals(params[0])) count += 1;
             }
+
+            pair = new Pair<Integer, String>(count, params[0]);
+            return pair;
         }
 
         @Override
@@ -117,6 +113,8 @@ public class BookSelectionScreen extends Activity {
                 mBooks.add(newBook);
                 displayBooks();
             }
+            else
+                createToast("An Address Book with that name already exists!");
             mProgressBar.setVisibility(View.GONE);
         }
     }
