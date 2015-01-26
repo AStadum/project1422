@@ -2,6 +2,7 @@ package com.addressbook.thorrism.addressbook;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,11 +13,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseQuery;
+import com.parse.SaveCallback;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -116,16 +120,7 @@ public class ContactEditScreen extends Activity {
         mAddBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO DO INPUT CHECKING HERE.
-
-             //   Contact contact = createContact();
-//                if(contact == null) Log.e(DroidBook.TAG, "Null");
-//                else{
-//                    DroidBook.getInstance().hideKeyboard(mCurrentEdit, getApplicationContext());
-//                    mBook.addEntry(contact);
-//                    new SaveTask().execute();
-//                }
-
+                saveContact();
             }
         });
 
@@ -133,7 +128,7 @@ public class ContactEditScreen extends Activity {
         mCancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DroidBook.getInstance().hideKeyboard(mCurrentEdit, getApplicationContext());
+                DroidBook.hideKeyboard(mCurrentEdit, getApplicationContext());
                 mActivity.finish();
             }
         });
@@ -176,6 +171,140 @@ public class ContactEditScreen extends Activity {
         mScrollView.setVisibility(View.VISIBLE);
     }
 
+    /**
+     * Capitalize the first letter for the argument string, and return the string back
+     * once done. Also, it does this for every first letter within the string.
+     *
+     * @param s - input string to have first letter capitalized
+     * @return the output from capitalizing the first letter
+     */
+    public String capitalizeFirstLetter(String s){
+        List<String> words = new ArrayList<String>();
+        String current = "";
+        for(char c : s.toCharArray()){
+            if(c == ' '){
+                words.add(current);
+                current = "";
+            }
+            else current += c;
+        }
+        words.add(current);
+
+        String result = "";
+        if(words.size() > 1) { //If # of words found exceed more than one
+            for (String word : words) {
+                String tmp = word.substring(1, word.length());
+                String tmp2 = Character.toString(word.charAt(0)).toUpperCase();
+                result += tmp2 + tmp + ' ';
+            }
+        }else {                //Otherwise, just return the string with modified first letter
+            String tmp = s.substring(1, s.length());
+            String tmp2 = Character.toString(s.charAt(0)).toUpperCase();
+            result += tmp2 + tmp + ' ';
+        }
+        return result.substring(0, result.length()-1);
+    }
+
+    /**
+     * Check the EditText input fields to see if a user has input valid data. If so, save
+     * the contact and return to the contact screen.
+     */
+    public void saveContact(){
+        if(mFirstNameEdit.getText().toString().length() != 0)
+            mContact.setFirstName(capitalizeFirstLetter(mFirstNameEdit.getText().toString()));
+        else {
+            createToast("Please enter a first name!");
+            return;
+        }
+
+        if(mLastNameEdit.getText().toString().length() != 0)
+            mContact.setLastName(capitalizeFirstLetter(mLastNameEdit.getText().toString()));
+        else
+            mContact.setLastName("");
+
+        String zip = mZipcodeEdit.getText().toString();
+
+        //Do input checking on the zip code. Make sure the user submits a valid one
+        if(!checkZipInput(zip)){
+            createToast("Please enter a valid zipcode!");
+            return;
+        }
+        else
+            mContact.setZipcode(zip);
+
+        //Only set the values if there is input
+        if(mStateEdit.getText().toString().length() != 0)
+            mContact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
+        else
+            mContact.setState("");
+        if(mCityEdit.getText().toString().length() != 0)
+            mContact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
+        else
+            mContact.setCity("");
+        if(mAddressEdit.getText().toString().length() != 0)
+            mContact.setAddress(capitalizeFirstLetter(mAddressEdit.getText().toString()));
+        else
+            mContact.setAddress("");
+        if(mEmailEdit.getText().toString().length() != 0)
+            mContact.setEmail(mEmailEdit.getText().toString());
+        else
+            mContact.setEmail("");
+        if(mNumberEdit.getText().toString().length() != 0)
+            mContact.setNumber(mNumberEdit.getText().toString());
+        else
+            mContact.setNumber("");
+
+        //Save contact in the background.
+        mContact.saveInBackground(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                if(e == null){
+                    SharedPreferences prefs = getApplicationContext().getSharedPreferences("ADD_STATE", MODE_PRIVATE);
+                    prefs.edit().putString("STATE", "MODIFIED").apply();
+                    prefs.edit().putString("CONTACT", mContact.getObjectId()).apply();
+                    createToast("Saved contact changes.");
+                    mActivity.finish();
+                }
+                else{
+                    e.printStackTrace();
+                    createToast("Failed to save contact!");
+                }
+            }
+        });
+    }
+
+    /**
+     * Create a toast method. Easier than typing this each time.
+     */
+    public void createToast(String message){
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
+    public boolean checkZipInput(String zip){
+        boolean result = false;
+
+        //If the input is supposed to a 5 integer input for zipcode
+        if(zip.length() == 5) {
+            for (char c : zip.toCharArray()) {
+                if ((int) c >= 48 && (int) c <= 57) result = true;
+                else return false;
+            }
+        }
+
+        //If the input is supposed to a 5 integer - 4 integer for zipcode
+        if(zip.length() == 10){
+            if (zip.charAt(5) != '-') return false;
+            else{
+                for (char c : zip.toCharArray()){
+                    if ((int) c >= 48 && (int) c <= 57) result = true;
+                    else {
+                        if (c != '-') return false;
+                    }
+                }
+            }
+        }
+        return result;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

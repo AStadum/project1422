@@ -24,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.DeleteCallback;
+import com.parse.GetCallback;
 import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseObject;
@@ -204,7 +205,6 @@ public class ContactsScreen extends Activity {
         }
     }
 
-
     private class SortContactsTask extends AsyncTask<Void, Void, Void>{
 
         @Override
@@ -233,10 +233,48 @@ public class ContactsScreen extends Activity {
 
         @Override
         protected void onPostExecute(Void result){
-            displayList();
+            mAdapter.notifyDataSetChanged();
             mContactSpinner.setVisibility(View.GONE);
         }
     }
+
+    private class UpdateContactTask extends AsyncTask<String, Void, Void>{
+
+        @Override
+        public void onPreExecute(){
+            mContactSpinner.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public Void doInBackground(String... params){
+            Contact contact = null;
+            Contact result = null;
+
+            //Find the updated contact that matches our parameter objectID
+            for(int i=0; i<mContacts.size(); ++i){
+                contact = mContacts.get(i);
+                if(contact.getObjectId().equals(params[0])){
+                    try{
+                        result = contact.fetch();
+                        mContactHeaders.set(i, result.getFirstName() + " " + result.getLastName());
+                        mContactData.put(mContactHeaders.get(i), result);
+                    }catch(ParseException e){
+                        e.printStackTrace();
+                        Log.e(DroidBook.TAG, "Failed to update contact!");
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result){
+            mAdapter.notifyDataSetChanged();
+            mContactSpinner.setVisibility(View.GONE);
+        }
+    }
+
     /**
      * Create a new custom adapter for our ExpandableListView and populate the adapter with
      * our contacts and headers containing the contact's names.
@@ -308,6 +346,7 @@ public class ContactsScreen extends Activity {
                     editIcon.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            mExpandableView.collapseGroup(position);
                             clearActiveContact();
                             Contact contact = (Contact) mAdapter.getChild(position, 0);
                             Intent intent = new Intent(getApplicationContext(), ContactEditScreen.class);
@@ -482,9 +521,17 @@ public class ContactsScreen extends Activity {
         super.onResume();
         if(mBook != null && mContacts != null){
             SharedPreferences prefs = getApplicationContext().getSharedPreferences("ADD_STATE", MODE_PRIVATE);
+
+            //Check if we need to update the contacts list from the user adding a new contact
             if(prefs.getString("STATE", "").equals("NEW")) {
                 new FetchBookTask().execute(mBookId);
                 prefs.edit().putString("STATE", "UPDATED").apply();
+            }
+
+            if(prefs.getString("STATE", "").equals("MODIFIED")) {
+                prefs.edit().putString("STATE", "UPDATED").apply();
+                new UpdateContactTask().execute(prefs.getString("CONTACT", ""));
+
             }
         }
     }
