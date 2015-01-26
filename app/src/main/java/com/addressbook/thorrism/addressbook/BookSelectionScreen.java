@@ -74,12 +74,13 @@ public class BookSelectionScreen extends Activity {
      */
     public void initParse(){
         ParseObject.registerSubclass(AddressBook.class);
+        ParseObject.registerSubclass(Contact.class);
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12" );
     }
 
     /**
-     * This AsyncTask performs a single network access used to query for if an AddressBook
-     * already exists with the desired name the user inputs. If it does exist, an appropriate
+     * This Async Task checks the current list of address book names, and checks if the new name
+     * exists already in the database. If it does exist, an appropriate
      * Toast message is used to tell the user it already exists. Otherwise, an AddressBook is
      * created with the new name and added to the database.
      */
@@ -253,13 +254,25 @@ public class BookSelectionScreen extends Activity {
      * Uses the argument position to map the book we want to remove from our
      * List of AddressBook(s). Remove the book from the List, then remove the book
      * from the database. Update the user with a Toast when finished, and with an
-     * update to the ListView display.
+     * update to the ListView display. Also removes all the contacts for this deleted
+     * book in the background.
      *
      * @param position - the book we selected from the ListView
      */
     public void removeBook(int position){
         AddressBook book = mBooks.get(position);
+        List<Contact> contacts = book.getEntries();
         mBooks.remove(position);
+
+        //Delete all the old contacts in the background
+        Contact contact = null;
+        for(int i=0; i<contacts.size(); ++i){
+            contact = contacts.get(i);
+            contact.fetchIfNeededInBackground();
+            contact.deleteInBackground();
+        }
+
+        //And delete the Address book from the database.
         book.deleteInBackground(new DeleteCallback() {
 
             @Override
@@ -485,7 +498,10 @@ public class BookSelectionScreen extends Activity {
                 return true;
 
             case (R.id.action_addBook):
-                addBook();
+                if(mBooks.size() < 5)
+                    addBook();
+                else
+                    createToast("You have already reached your Address Book limit!");
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

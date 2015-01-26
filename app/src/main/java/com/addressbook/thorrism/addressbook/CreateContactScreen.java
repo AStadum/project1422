@@ -44,7 +44,6 @@ public class CreateContactScreen extends Activity {
     private Button   mCancelBtn;
     private EditText mCurrentEdit;
     private Activity mActivity;
-    private boolean mViewState;
     private AddressBook mBook;
 
     @Override

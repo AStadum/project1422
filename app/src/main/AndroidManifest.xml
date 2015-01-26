@@ -66,7 +66,10 @@
         </activity>
         <activity
             android:name=".ContactEditScreen"
-            android:label="@string/title_activity_contact_edit_screen" >
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"
+            android:theme="@android:style/Theme.Holo"
+            android:windowSoftInputMode="adjustResize" >
         </activity>
     </application>
 

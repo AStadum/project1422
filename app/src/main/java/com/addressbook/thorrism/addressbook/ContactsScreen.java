@@ -304,6 +304,17 @@ public class ContactsScreen extends Activity {
                             removeContactDialog(position, removeIcon, editIcon);
                         }
                     });
+
+                    editIcon.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            clearActiveContact();
+                            Contact contact = (Contact) mAdapter.getChild(position, 0);
+                            Intent intent = new Intent(getApplicationContext(), ContactEditScreen.class);
+                            intent.putExtra("ContactID", contact.getObjectId());
+                            startActivity(intent);
+                        }
+                    });
                 }
                 return true;
             }

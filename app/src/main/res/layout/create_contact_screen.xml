@@ -9,6 +9,8 @@
 
     <ScrollView
         android:id="@+id/newContactScroll"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_centerHorizontal="true">

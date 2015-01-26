@@ -11,6 +11,7 @@
     <string name="empty_books">No Address books Found!</string>
     <string name="create_book">Create Address book</string>
     <string name="create_contact">Create Contact</string>
+    <string name="edit_contact">Edit Contact</string>
     <string name="first_name">First Name</string>
     <string name="last_name">Last Name</string>
     <string name="address_input">Street</string>

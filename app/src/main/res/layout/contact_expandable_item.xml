@@ -48,11 +48,36 @@
         android:id="@+id/callContactView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingRight="20dp"
-        android:layout_alignBaseline="@+id/contactEmail"
+        android:paddingRight="75dp"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true"
-        android:src="@drawable/ic_phone"
+        android:paddingBottom="10dp"
+        android:src="@drawable/ic_phone2"
         android:contentDescription="Call Contact"/>
+
+    <ImageView
+        android:id="@+id/textContactView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="25dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@+id/callContactView"
+        android:layout_alignEnd="@+id/callContactView"
+        android:paddingBottom="10dp"
+        android:src="@drawable/ic_email2"
+        android:contentDescription="Text Contact"/>
+
+    <ImageView
+        android:id="@+id/mapContactView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingRight="25dp"
+        android:paddingBottom="10dp"
+        android:layout_alignBaseline="@+id/contactName"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/ic_map"
+        android:contentDescription="Text Contact"/>
+
 
 </RelativeLayout>

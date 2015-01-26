@@ -1,5 +1,7 @@
 package com.addressbook.thorrism.addressbook;
 
+import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
@@ -10,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.HashMap;
 import java.util.List;
@@ -49,7 +52,37 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
                 context.startActivity(callIntent);
             }
         });
+    }
 
+    public void addTextListenener(ImageView view, final Contact contact){
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent textIntent = new Intent(Intent.ACTION_VIEW);
+                textIntent.setData(Uri.parse("sms:" + contact.getNumber()));
+                context.startActivity(textIntent);
+            }
+        });
+    }
+
+    public void addDirectionsListener(ImageView view, final Contact contact){
+        view.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    String address = contact.getAddress() + " " + contact.getCity() + ", " + contact.getState();
+                    String url = "http://maps.google.com/maps?daddr=" + address;
+                    Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
+                    intent.setComponent(new ComponentName(
+                            "com.google.android.apps.maps",
+                            "com.google.android.maps.MapsActivity"));
+                    context.startActivity(intent);
+                }catch(ActivityNotFoundException e){
+                    e.printStackTrace();
+                    Toast.makeText(context, "Google Maps not found!", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
     }
 
     @Override
@@ -74,7 +107,11 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         TextView contactEmail        = (TextView) convertView.findViewById(R.id.contactEmail);
         TextView contactNumber       = (TextView) convertView.findViewById(R.id.contactNumber);
         ImageView phoneIcon          = (ImageView) convertView.findViewById(R.id.callContactView);
+        ImageView textIcon           = (ImageView) convertView.findViewById(R.id.textContactView);
+        ImageView mapIcon            = (ImageView) convertView.findViewById(R.id.mapContactView);
         phoneIcon.setVisibility(View.GONE);
+        textIcon.setVisibility(View.GONE);
+        mapIcon.setVisibility(View.GONE);
 
         //Set the values for the views from the contacts from their information
         if(!contact.getFirstName().equals("")) {
@@ -94,8 +131,10 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         if(contact.getState().equals(""))
             contactCityStateZip.setText(contact.getCity() + " " + contact.getZipcode());
 
-        if(!contact.getCity().equals("") && !contact.getState().equals("") && !contact.getZipcode().equals(""))
+        if(!contact.getCity().equals("") && !contact.getState().equals("") && !contact.getZipcode().equals("")) {
             contactCityStateZip.setText(contact.getCity() + ", " + contact.getState() + " " + contact.getZipcode());
+            mapIcon.setVisibility(View.VISIBLE);
+        }
 
         if(contact.getCity().equals("") && contact.getState().equals(""))
             contactCityStateZip.setText(contact.getZipcode());
@@ -109,7 +148,11 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         if(!contact.getNumber().equals("")) {
             contactNumber.setText(contact.getNumber());
             phoneIcon.setVisibility(View.VISIBLE);
+            textIcon.setVisibility(View.VISIBLE);
             contactNumber.setVisibility(View.VISIBLE);
+            addCallListenener(phoneIcon, contact);
+            addTextListenener(textIcon, contact);
+            addDirectionsListener(mapIcon, contact);
         }
         else
             contactNumber.setVisibility(View.GONE);
