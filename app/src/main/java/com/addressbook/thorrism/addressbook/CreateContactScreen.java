@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
@@ -227,7 +228,7 @@ public class CreateContactScreen extends Activity {
             contact.setNumber(mNumberEdit.getText().toString());
         else
             contact.setNumber("");
-        contact.saveInBackground();
+        contact.saveEventually();
       //  contact.pinInBackground();
         return contact;
     }
@@ -240,14 +241,17 @@ public class CreateContactScreen extends Activity {
      * @param name - the name of the AddressBook we query from the database.
      */
     public void fetchBook(String name) {
-        ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+        ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
         bookQuery.whereEqualTo("objectId", name);
 
         bookQuery.findInBackground(new FindCallback<AddressBook>() {
 
             @Override
             public void done(List<AddressBook> addressBooks, ParseException e) {
-                if(e == null) mBook = addressBooks.get(0);
+                if(e == null){
+                    mBook = addressBooks.get(0);
+                    ParseObject.pinAllInBackground(addressBooks);
+                }
                 else{
                     Log.e(DroidBook.TAG, "Error: " + e.getMessage());
                     e.printStackTrace();
@@ -266,12 +270,7 @@ public class CreateContactScreen extends Activity {
 
         @Override
         public Void doInBackground(Void... params) {
-            try{
-                mBook.save();
-            } catch (ParseException e) {
-                e.printStackTrace();
-                Log.e(DroidBook.TAG, "Error: " + e.getMessage());
-            }
+            mBook.saveEventually();
             return null;
         }
 
@@ -334,16 +333,32 @@ public class CreateContactScreen extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onBackPressed(){
-        //Clear the focus from the current edit text
-        super.onBackPressed();
-    }
-
     /**
      * Create a toast method. Easier than typing this each time.
      */
     public void createToast(String message){
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
     }
+
+    /**
+     * Deal with the Android Lifecycle
+     */
+    @Override
+    public void onStart(){
+        super.onStart();
+        DroidBook.getInstance().contactCreateActivity = this;
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        DroidBook.getInstance().contactCreateActivity = null;
+    }
+
+    @Override
+    public void onBackPressed(){
+        //Clear the focus from the current edit text
+        super.onBackPressed();
+    }
+
 }

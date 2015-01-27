@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
+import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
@@ -80,6 +81,7 @@ public class ContactEditScreen extends Activity {
 
         //Fetch the contact and fill in the data from the contact
         fetchContact(getIntent().getExtras().getString("ContactID"));
+        setContactData();
     }
 
     public void addFocusListener(EditText v){
@@ -140,7 +142,7 @@ public class ContactEditScreen extends Activity {
      * @param name - the name of the AddressBook we query from the database.
      */
     public void fetchContact(String name) {
-        ParseQuery<Contact> contactQuery = ParseQuery.getQuery(Contact.class);
+        ParseQuery<Contact> contactQuery = ParseQuery.getQuery(Contact.class).fromLocalDatastore();
         contactQuery.whereEqualTo("objectId", name);
 
         contactQuery.findInBackground(new FindCallback<Contact>() {
@@ -148,8 +150,8 @@ public class ContactEditScreen extends Activity {
             @Override
             public void done(List<Contact> contacts, ParseException e) {
                 if(e == null) {
+                    ParseObject.pinAllInBackground(contacts);
                     mContact = contacts.get(0);
-                    setContactData();
                 }
                 else{
                     Log.e(DroidBook.TAG, "Error: " + e.getMessage());
@@ -160,15 +162,14 @@ public class ContactEditScreen extends Activity {
     }
 
     public void setContactData(){
-        mFirstNameEdit.setText(mContact.getFirstName());
-        mLastNameEdit.setText(mContact.getLastName());
-        mAddressEdit.setText(mContact.getAddress());
-        mCityEdit.setText(mContact.getCity());
-        mStateEdit.setText(mContact.getState());
-        mZipcodeEdit.setText(mContact.getZipcode());
-        mNumberEdit.setText(mContact.getNumber());
-        mEmailEdit.setText(mContact.getEmail());
-        mScrollView.setVisibility(View.VISIBLE);
+        mFirstNameEdit.setText(getIntent().getExtras().getString("FirstName"));
+        mLastNameEdit.setText(getIntent().getExtras().getString("LastName"));
+        mCityEdit.setText(getIntent().getExtras().getString("CityName"));
+        mStateEdit.setText(getIntent().getExtras().getString("StateName"));
+        mAddressEdit.setText(getIntent().getExtras().getString("Address"));
+        mZipcodeEdit.setText(getIntent().getExtras().getString("ZipCode"));
+        mNumberEdit.setText(getIntent().getExtras().getString("Number"));
+        mEmailEdit.setText(getIntent().getExtras().getString("Email"));
     }
 
     /**
@@ -254,23 +255,13 @@ public class ContactEditScreen extends Activity {
         else
             mContact.setNumber("");
 
-        //Save contact in the background.
-        mContact.saveInBackground(new SaveCallback() {
-            @Override
-            public void done(ParseException e) {
-                if(e == null){
-                    SharedPreferences prefs = getApplicationContext().getSharedPreferences("ADD_STATE", MODE_PRIVATE);
-                    prefs.edit().putString("STATE", "MODIFIED").apply();
-                    prefs.edit().putString("CONTACT", mContact.getObjectId()).apply();
-                    createToast("Saved contact changes.");
-                    mActivity.finish();
-                }
-                else{
-                    e.printStackTrace();
-                    createToast("Failed to save contact!");
-                }
-            }
-        });
+        //Save contact in the background. (eventually as well in case of network failure)
+        mContact.saveEventually();
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences("ADD_STATE", MODE_PRIVATE);
+        prefs.edit().putString("STATE", "MODIFIED").apply();
+        prefs.edit().putString("CONTACT", mContact.getObjectId()).apply();
+        createToast("Saved contact changes.");
+        mActivity.finish();
     }
 
     /**
@@ -326,5 +317,20 @@ public class ContactEditScreen extends Activity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    /**
+     * Deal with the Android Lifecycle
+     */
+    @Override
+    public void onStart(){
+        super.onStart();
+        DroidBook.getInstance().contactEditActivity = this;
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        DroidBook.getInstance().contactEditActivity = null;
     }
 }

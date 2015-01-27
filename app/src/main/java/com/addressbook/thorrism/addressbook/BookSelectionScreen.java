@@ -73,6 +73,7 @@ public class BookSelectionScreen extends Activity {
      * the classes, or ParseObjects used, are registered for use.
      */
     public void initParse(){
+        Parse.enableLocalDatastore(this);
         ParseObject.registerSubclass(AddressBook.class);
         ParseObject.registerSubclass(Contact.class);
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12" );
@@ -110,7 +111,15 @@ public class BookSelectionScreen extends Activity {
                 newBook.setBookName(result.getRight());
                 newBook.setUserID(DroidBook.getInstance().getUser().getObjectId());
                 newBook.initEntries(new ArrayList<Contact>());
-                newBook.saveInBackground(); //Important to call this, in order to save data
+                newBook.saveEventually(); //Important to call this, in order to save data
+                List<AddressBook> book = new ArrayList<AddressBook>();
+                book.add(newBook);
+                try{
+                    ParseObject.pinAll(book);
+                }catch(ParseException e){
+                    e.printStackTrace();
+                    Log.e(DroidBook.TAG, "Failed to pink!");
+                }
                 mBooks.add(newBook);
                 displayBooks();
             }
@@ -136,9 +145,8 @@ public class BookSelectionScreen extends Activity {
 
         @Override
         protected Integer doInBackground(Void... params){
-            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
             bookQuery.whereEqualTo("userID", DroidBook.getInstance().getUser().getObjectId());
-
             try{
                 return bookQuery.count(); //Query for the number of AddressBook(s) that match user's ID
             }catch(ParseException e){
@@ -155,13 +163,15 @@ public class BookSelectionScreen extends Activity {
             //the ListView with them.
             if(result == null) Log.e("Null", "Null");
             else {
-                ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+                ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
+
                 bookQuery.whereEqualTo("userID", DroidBook.getInstance().getUser().getObjectId());
                 bookQuery.findInBackground(new FindCallback<AddressBook>() {
 
                     public void done(List<AddressBook> books, ParseException e) {
                         if (e == null) {
                             mBooks = books;
+                            ParseObject.pinAllInBackground(books);
                             displayBooks();
                         } else {
                             e.printStackTrace();
@@ -206,8 +216,11 @@ public class BookSelectionScreen extends Activity {
         if(mActiveBook == null) return;
         ImageView exitIcon = (ImageView) mActiveBook.findViewById(R.id.exitViewIcon);
         ImageView editIcon = (ImageView) mActiveBook.findViewById(R.id.editViewIcon);
-        exitIcon.setVisibility(View.GONE);
-        editIcon.setVisibility(View.GONE);
+        if(exitIcon != null && editIcon != null){
+            exitIcon.setVisibility(View.GONE);
+            editIcon.setVisibility(View.GONE);
+        }
+
     }
 
     /**
@@ -239,8 +252,10 @@ public class BookSelectionScreen extends Activity {
                 mActiveBook = mBooksView.getChildAt(position);
                 ImageView exitIcon = (ImageView) mActiveBook.findViewById(R.id.exitViewIcon);
                 ImageView editIcon = (ImageView) mActiveBook.findViewById(R.id.editViewIcon);
-                exitIcon.setVisibility(View.VISIBLE);
-                editIcon.setVisibility(View.VISIBLE);
+                if(exitIcon != null && editIcon != null) {
+                    exitIcon.setVisibility(View.VISIBLE);
+                    editIcon.setVisibility(View.VISIBLE);
+                }
 
                 addExitListener(exitIcon, position);
                 addEditListener(editIcon, position);
@@ -269,22 +284,24 @@ public class BookSelectionScreen extends Activity {
         for(int i=0; i<contacts.size(); ++i){
             contact = contacts.get(i);
             contact.fetchIfNeededInBackground();
-            contact.deleteInBackground();
+            contact.deleteEventually();
         }
 
         //And delete the Address book from the database.
-        book.deleteInBackground(new DeleteCallback() {
+//        book.deleteInBackground(new DeleteCallback() {
+//
+//            @Override
+//            public void done(ParseException e) {
+//                if(e==null){
+//                    createToast("Deleted Address Book");
+//                }else{
+//                    e.printStackTrace();
+//                    createToast("Failed to delete. Check network settings");
+//                }
+//            }
+//        });
 
-            @Override
-            public void done(ParseException e) {
-                if(e==null){
-                    createToast("Deleted Address Book");
-                }else{
-                    e.printStackTrace();
-                    createToast("Failed to delete.");
-                }
-            }
-        });
+        book.deleteEventually();
 
         //Update the display to show book removed
         displayBooks();
@@ -448,7 +465,7 @@ public class BookSelectionScreen extends Activity {
                         if(name.length() == 0) createToast("Please enter a valid name.");
                         else {
                             mBooks.get(position).setBookName(name);
-                            mBooks.get(position).saveInBackground();
+                            mBooks.get(position).saveEventually();
                             displayBooks();
                             dialog.dismiss();
                         }

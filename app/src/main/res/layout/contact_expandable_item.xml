@@ -77,7 +77,7 @@
         android:layout_alignBaseline="@+id/contactName"
         android:layout_alignParentRight="true"
         android:src="@drawable/ic_map"
-        android:contentDescription="Text Contact"/>
+        android:contentDescription="Start"/>
 
 
 </RelativeLayout>

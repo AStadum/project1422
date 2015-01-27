@@ -42,6 +42,7 @@ public class ContactsScreen extends Activity {
     private TextView mEmptyView;
     private AddressBook mBook;
     private View mActiveContact;
+    private int mCurrentGroup;
     private String mBookId;
     private List<Contact> mContacts;
     private ProgressBar mContactSpinner;
@@ -70,11 +71,13 @@ public class ContactsScreen extends Activity {
         mContactHeaders = new ArrayList<String>();
         mContactData    = new HashMap<String, Contact>();
         mVibrator       = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        mCurrentGroup = -1;
         setComparator(2);
 
         //Set the action bar's icon to be the logo.
         ActionBar actionBar = getActionBar();
         actionBar.setIcon(R.drawable.ic_logo);
+        DroidBook.setFontRoboto(mEmptyView, this);
 
         //Initialize the Parse instance and fetch the user's contacts
         initParse();
@@ -99,6 +102,7 @@ public class ContactsScreen extends Activity {
      */
     public void setComparator(int compare){
         Comparator<Contact> result = null;
+
         //By zipcode, we check if zipcodes are equal if so, compare the names, if not just return zip codes
         if(compare == 0) {
             result = new Comparator<Contact>() {
@@ -111,6 +115,7 @@ public class ContactsScreen extends Activity {
                 }
             };
         }
+
         //By last name sort, just compare last names
         if(compare == 1) {
             result = new Comparator<Contact>() {
@@ -155,11 +160,16 @@ public class ContactsScreen extends Activity {
 
         @Override
         protected Boolean doInBackground(String... params){
-            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
-            bookQuery.whereEqualTo("objectId", params[0]);
+            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
+
+            if(bookQuery == null)
+                DroidBook.getInstance().close();
+            else
+                bookQuery.whereEqualTo("objectId", params[0]);
 
             try{
                 List<AddressBook> books = bookQuery.find();
+                ParseObject.pinAll(books);
                 mBook = books.get(0);
                 mContacts = mBook.getEntries();
                 mContactHeaders.clear();
@@ -167,7 +177,11 @@ public class ContactsScreen extends Activity {
 
                 //Fetch the contacts, must do to have a value for the contact
                 for(Contact contact: mContacts){
-                    contact.fetchIfNeeded();
+                    try{
+                        contact.fetchFromLocalDatastore();
+                    }catch(ParseException e){
+                        contact.fetchIfNeeded();
+                    }
                 }
 
                 //Attempt to sort the contacts list by first name
@@ -196,7 +210,6 @@ public class ContactsScreen extends Activity {
                 if(mContacts == null || mContacts.size() == 0){
                     mEmptyView.setVisibility(View.VISIBLE);
                 }else{
-                    //displayContacts();
                     displayList();
                     mEmptyView.setVisibility(View.INVISIBLE);
                 }
@@ -250,21 +263,27 @@ public class ContactsScreen extends Activity {
             Contact contact = null;
             Contact result = null;
 
-            //Find the updated contact that matches our parameter objectID
+            //Find the updated contact that matches our parameter objectID.
             for(int i=0; i<mContacts.size(); ++i){
                 contact = mContacts.get(i);
+                if(contact == null) return null;
                 if(contact.getObjectId().equals(params[0])){
                     try{
-                        result = contact.fetch();
+                        try{
+                            contact.fetchFromLocalDatastore();
+                            result = contact;
+                        }catch(ParseException e){
+                            result = contact.fetch();
+                        }
                         mContactHeaders.set(i, result.getFirstName() + " " + result.getLastName());
                         mContactData.put(mContactHeaders.get(i), result);
+                        return null;
                     }catch(ParseException e){
                         e.printStackTrace();
-                        Log.e(DroidBook.TAG, "Failed to update contact!");
+                        Log.e(DroidBook.TAG, "Failed to update contact! Check your network status.");
                     }
                 }
             }
-
             return null;
         }
 
@@ -280,6 +299,8 @@ public class ContactsScreen extends Activity {
      * our contacts and headers containing the contact's names.
      */
     public void displayList(){
+        if(checkEmptyContacts()) mEmptyView.setVisibility(View.VISIBLE);
+
         mAdapter = new ContactExpandableAdapter(this, mContactHeaders, mContactData);
         mExpandableView.setAdapter(mAdapter);
         addHeaderListeners();
@@ -310,6 +331,8 @@ public class ContactsScreen extends Activity {
         mExpandableView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
             @Override
             public void onGroupExpand(int groupPosition) {
+                if(mCurrentGroup != -1) mExpandableView.collapseGroup(mCurrentGroup);
+                mCurrentGroup = groupPosition;
                 clearActiveContact();
                 mActiveContact = mExpandableView.getChildAt(groupPosition);
             }
@@ -336,6 +359,7 @@ public class ContactsScreen extends Activity {
                     removeIcon.setVisibility(View.VISIBLE);
                     editIcon.setVisibility(View.VISIBLE);
 
+                    //Add a click listener to the remove icon
                     removeIcon.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -343,6 +367,7 @@ public class ContactsScreen extends Activity {
                         }
                     });
 
+                    //Add a click listener to the edit icon
                     editIcon.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -350,7 +375,17 @@ public class ContactsScreen extends Activity {
                             clearActiveContact();
                             Contact contact = (Contact) mAdapter.getChild(position, 0);
                             Intent intent = new Intent(getApplicationContext(), ContactEditScreen.class);
+
+                            //Pass all the data so the fields can be filled out on the edit screen.
                             intent.putExtra("ContactID", contact.getObjectId());
+                            intent.putExtra("FirstName", contact.getFirstName());
+                            intent.putExtra("LastName", contact.getLastName());
+                            intent.putExtra("Address", contact.getAddress());
+                            intent.putExtra("CityName", contact.getCity());
+                            intent.putExtra("StateName", contact.getState());
+                            intent.putExtra("ZipCode", contact.getZipcode());
+                            intent.putExtra("Number", contact.getNumber());
+                            intent.putExtra("Email", contact.getEmail());
                             startActivity(intent);
                         }
                     });
@@ -411,7 +446,7 @@ public class ContactsScreen extends Activity {
         Contact contact = mContacts.get(position);
         mBook.removeEntry(position);
         mContactHeaders.remove(position);
-        mBook.saveInBackground();
+        mBook.saveEventually();
 
         contact.deleteInBackground(new DeleteCallback() {
 
@@ -452,6 +487,7 @@ public class ContactsScreen extends Activity {
 
 
     /**
+     * +
      * When a user selects "Choose new Address Book" they return to the previous screen
      * and can select another address book to be active
      */
@@ -467,7 +503,7 @@ public class ContactsScreen extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_addBook:
+            case R.id.action_addContact:
                 Intent intent = new Intent(this, CreateContactScreen.class);
                 intent.putExtra("BookId", mBookId);
                 startActivity(intent);
@@ -480,19 +516,32 @@ public class ContactsScreen extends Activity {
         }
     }
 
+    public boolean checkEmptyContacts(){
+        if(mContacts.size() == 0)
+            return true;
+        else
+            return false;
+    }
+
     /**
      * OnClick methods used by the MenuItems under settings to sort the user's contacts
      * based on what they chose.
      * @param i
      */
     public void sortByLast(MenuItem i){
-        setComparator(1);
-        new SortContactsTask().execute();
+        if(checkEmptyContacts()) createToast("No contacts found!");
+        else {
+            setComparator(1);
+            new SortContactsTask().execute();
+        }
     }
 
     public void sortByZip(MenuItem i){
-        setComparator(0);
-        new SortContactsTask().execute();
+        if(checkEmptyContacts()) createToast("No contacts found!");
+        else {
+            setComparator(0);
+            new SortContactsTask().execute();
+        }
     }
 
     @Override
@@ -528,10 +577,10 @@ public class ContactsScreen extends Activity {
                 prefs.edit().putString("STATE", "UPDATED").apply();
             }
 
+            //If we just updated, update the list view to display our changes.
             if(prefs.getString("STATE", "").equals("MODIFIED")) {
                 prefs.edit().putString("STATE", "UPDATED").apply();
                 new UpdateContactTask().execute(prefs.getString("CONTACT", ""));
-
             }
         }
     }

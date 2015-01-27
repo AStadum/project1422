@@ -3,7 +3,7 @@
     tools:context=".HomeScreen" >
 
     <item
-        android:id="@+id/action_addBook"
+        android:id="@+id/action_addContact"
         android:showAsAction="always"
         android:icon="@drawable/ic_add"
         android:title="@string/action_add_book"/>

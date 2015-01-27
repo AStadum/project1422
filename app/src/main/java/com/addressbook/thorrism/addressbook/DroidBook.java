@@ -23,6 +23,8 @@ public class DroidBook {
     public static Activity signupScreenActivity;
     public static Activity startScreenActivity;
     public static Activity bookSelectionActivity;
+    public static Activity contactEditActivity;
+    public static Activity contactCreateActivity;
     public static DroidBook instance;
     public static String username;
     public static ParseUser user;
@@ -51,6 +53,8 @@ public class DroidBook {
         if(contactScreenActivity != null) contactScreenActivity.finish();
         if(loginScreenActivity != null) loginScreenActivity.finish();
         if(startScreenActivity != null) startScreenActivity.finish();
+        if(contactEditActivity != null) contactEditActivity.finish();
+        if(contactCreateActivity != null) contactCreateActivity.finish();
         if(bookSelectionActivity != null) bookSelectionActivity.finish();
         if(signupScreenActivity != null) signupScreenActivity.finish();
     }
