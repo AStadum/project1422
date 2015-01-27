@@ -115,7 +115,7 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
 
         //Set the values for the views from the contacts from their information
         if(!contact.getFirstName().equals("")) {
-            contactName.setText(contact.getFirstName() + " " + contact.getLastName());
+            contactName.setText(contact.getFirstName());
             contactName.setVisibility(View.VISIBLE);
         }
         if(!contact.getAddress().equals("")) {
