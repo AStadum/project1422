@@ -131,7 +131,7 @@ public class CreateContactScreen extends Activity {
                 Contact contact = createContact();
                 if(contact == null) Log.e(DroidBook.TAG, "Null");
                 else{
-                    DroidBook.getInstance().hideKeyboard(mCurrentEdit, getApplicationContext());
+                    DroidBook.hideKeyboard(mCurrentEdit, getApplicationContext());
                     mBook.addEntry(contact);
                     new SaveTask().execute();
                 }
@@ -143,7 +143,7 @@ public class CreateContactScreen extends Activity {
         mCancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DroidBook.getInstance().hideKeyboard(mCurrentEdit, getApplicationContext());
+                DroidBook.hideKeyboard(mCurrentEdit, getApplicationContext());
                 mActivity.finish();
             }
         });

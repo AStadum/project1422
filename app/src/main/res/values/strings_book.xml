@@ -11,7 +11,8 @@
     <string name="empty_books">No Address books Found!</string>
     <string name="create_book">Create Address book</string>
     <string name="create_contact">Create Contact</string>
-    <string name="edit_contact">Edit Contact</string>
+    <string name="edit_contact">Edit contact</string>
+    <string name="delete_contact">Delete contact</string>
     <string name="first_name">First Name</string>
     <string name="last_name">Last Name</string>
     <string name="address_input">Street</string>
@@ -32,7 +33,8 @@
     <string name="empty_contacts">No Contacts Found!</string>
     <string name="contact_item_header">A</string>
     <string name="return_to_books">Return to Address Books</string>
-    <string name="remove_book_message">Are you sure?</string>
+    <string name="remove_contact_message">Are you sure? Deleting a contact is permanent.</string>
+    <string name="remove_book_message">Are you sure? Deleting an address book is permanent. All contacts will be lost!</string>
     <string name="sort_zip">Sort by ZIP code</string>
     <string name="sort_last">Sort by Name</string>
 

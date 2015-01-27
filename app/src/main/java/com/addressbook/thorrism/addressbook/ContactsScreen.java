@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -15,10 +16,12 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ExpandableListView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -68,6 +71,7 @@ public class ContactsScreen extends Activity {
 
         //ExpandleListView items
         mExpandableView = (ExpandableListView) findViewById(R.id.contactsExpandableView);
+        addHeaderListeners();
         mContactHeaders = new ArrayList<String>();
         mContactData    = new HashMap<String, Contact>();
         mVibrator       = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
@@ -184,6 +188,8 @@ public class ContactsScreen extends Activity {
                     }
                 }
 
+                ParseObject.pinAll(mContacts);
+
                 //Attempt to sort the contacts list by first name
                 Collections.sort(mContacts, mComparator);
                 mBook.setEntries(mContacts);
@@ -192,6 +198,8 @@ public class ContactsScreen extends Activity {
                 Contact contact;
                 for(int i=0; i<mContacts.size(); ++i){
                     contact = mContacts.get(i);
+                    if(contact == null)
+                        Log.e(DroidBook.TAG, "*****NULL****");
                     mContactHeaders.add(contact.getFirstName() + " " + contact.getLastName());
                     mContactData.put(mContactHeaders.get(mContactData.size()), contact);
                 }
@@ -289,7 +297,7 @@ public class ContactsScreen extends Activity {
 
         @Override
         protected void onPostExecute(Void result){
-            mAdapter.notifyDataSetChanged();
+            displayList();
             mContactSpinner.setVisibility(View.GONE);
         }
     }
@@ -300,25 +308,8 @@ public class ContactsScreen extends Activity {
      */
     public void displayList(){
         if(checkEmptyContacts()) mEmptyView.setVisibility(View.VISIBLE);
-
         mAdapter = new ContactExpandableAdapter(this, mContactHeaders, mContactData);
         mExpandableView.setAdapter(mAdapter);
-        addHeaderListeners();
-    }
-
-    /**
-     * Clear the active contacts icons when we select another contact. If the current active contact
-     * is null, the function just returns.
-     */
-    public void clearActiveContact(){
-        //Check if null, otherwise hide the ImageViews from the active contact selected
-        if(mActiveContact == null) return;
-        ImageView removeIcon = (ImageView) mActiveContact.findViewById(R.id.contactRemoveBtn);
-        ImageView editIcon   = (ImageView) mActiveContact.findViewById(R.id.contactEditBtn);
-        if(removeIcon != null && editIcon != null){
-            removeIcon.setVisibility(View.GONE);
-            editIcon.setVisibility(View.GONE);
-        }
     }
 
     /**
@@ -326,95 +317,104 @@ public class ContactsScreen extends Activity {
      * is expanded, clear the current contact's icons for edit / remove if they are visible.
      */
     public void addHeaderListeners(){
-
-        //When a group is expanded, hide the icons from the previously current contact selected
-        mExpandableView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
-            @Override
-            public void onGroupExpand(int groupPosition) {
-                if(mCurrentGroup != -1 && groupPosition != mCurrentGroup)
-                    mExpandableView.collapseGroup(mCurrentGroup);
-                mCurrentGroup = groupPosition;
-                clearActiveContact();
-                mActiveContact = mExpandableView.getChildAt(groupPosition);
-            }
-        });
-
-        mExpandableView.setOnGroupCollapseListener(new ExpandableListView.OnGroupCollapseListener() {
-            @Override
-            public void onGroupCollapse(int groupPosition) {
-                clearActiveContact();
-            }
-        });
-
-        //On long click for a contact, make the edit / remove icons visible.
         mExpandableView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-                clearActiveContact();
-                mVibrator.vibrate(100);
-                mActiveContact = mExpandableView.getChildAt(position);
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                long packedPosition = mExpandableView.getExpandableListPosition(position);
 
-                final ImageView removeIcon = (ImageView) mActiveContact.findViewById(R.id.contactRemoveBtn);
-                final ImageView editIcon   = (ImageView) mActiveContact.findViewById(R.id.contactEditBtn);
-                if(removeIcon != null && editIcon != null) {
-                    removeIcon.setVisibility(View.VISIBLE);
-                    editIcon.setVisibility(View.VISIBLE);
+                int itemType        = ExpandableListView.getPackedPositionType(packedPosition);
+                int groupPosition   = ExpandableListView.getPackedPositionGroup(packedPosition);
+                int childPosition   = ExpandableListView.getPackedPositionChild(packedPosition);
 
-                    //Add a click listener to the remove icon
-                    removeIcon.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            removeContactDialog(position, removeIcon, editIcon);
-                        }
-                    });
-
-                    //Add a click listener to the edit icon
-                    editIcon.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            mExpandableView.collapseGroup(position);
-                            clearActiveContact();
-                            Contact contact = (Contact) mAdapter.getChild(position, 0);
-                            Intent intent = new Intent(getApplicationContext(), ContactEditScreen.class);
-
-                            //Pass all the data so the fields can be filled out on the edit screen.
-                            intent.putExtra("ContactID", contact.getObjectId());
-                            intent.putExtra("FirstName", contact.getFirstName());
-                            intent.putExtra("LastName", contact.getLastName());
-                            intent.putExtra("Address", contact.getAddress());
-                            intent.putExtra("CityName", contact.getCity());
-                            intent.putExtra("StateName", contact.getState());
-                            intent.putExtra("ZipCode", contact.getZipcode());
-                            intent.putExtra("Number", contact.getNumber());
-                            intent.putExtra("Email", contact.getEmail());
-                            startActivity(intent);
-                        }
-                    });
+                if(itemType == ExpandableListView.PACKED_POSITION_TYPE_GROUP){
+                    Contact contact = (Contact) mAdapter.getChild(groupPosition, 0);
+                    contactDialog(contact, groupPosition);
+                    mVibrator.vibrate(100);
                 }
-                return true;
+
+                return false;
             }
         });
     }
 
-    /**
-     * Opens a dialog box confirming if a user truly wants to delete a contact (confirmation)
-     * @param position
-     * @param exitIcon
-     * @param editIcon
-     */
-    public void removeContactDialog(final int position, final ImageView exitIcon, final ImageView editIcon) {
+    public void editContact(Contact contact){
+        Intent intent = new Intent(this, ContactEditScreen.class);
+        intent.putExtra("ContactID", contact.getObjectId());
+        intent.putExtra("FirstName", contact.getFirstName());
+        intent.putExtra("LastName", contact.getLastName());
+        intent.putExtra("ZipCode", contact.getZipcode());
+        intent.putExtra("Address", contact.getAddress());
+        intent.putExtra("CityName", contact.getCity());
+        intent.putExtra("StateName", contact.getState());
+        intent.putExtra("Number", contact.getNumber());
+        intent.putExtra("Email", contact.getEmail());
+        startActivity(intent);
+    }
+
+    public void contactDialog(final Contact contact, final int position){
         LayoutInflater inflater = LayoutInflater.from(this);
 
-        final View modifyBookView = inflater.inflate(R.layout.remove_book, null);
+        final View contactViewOptions          = inflater.inflate(R.layout.contact_options, null);
+        final LinearLayout editContactLayout   = (LinearLayout) contactViewOptions.findViewById(R.id.editContactLayout);
+        final LinearLayout deleteContactLayout = (LinearLayout) contactViewOptions.findViewById(R.id.deleteContactLayout);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(contactViewOptions);
+
+        builder.setCancelable(true)
+                .setTitle(contact.getFirstName() + " " + contact.getLastName());
+
+        //Set the icon for the dialog window to the app's icon
+        builder.setIcon(R.drawable.ic_launcher);
+
+        //Build the dialog and create custom listeners for buttons
+        final AlertDialog dialog = builder.create();
+
+        //Remove the icons for the contact edit / remove to be visible
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+            }
+        });
+
+        //Add click listeners to the two layouts
+        editContactLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                editContact(contact);
+                dialog.dismiss();
+            }
+        });
+
+        deleteContactLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                removeContactDialog(contact, position);
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+    }
+
+    /**
+     * Opens a dialog box confirming if a user truly wants to delete a contact (confirmation)
+     * @param
+     */
+    public void removeContactDialog(final Contact contact, final int position) {
+        LayoutInflater inflater = LayoutInflater.from(this);
+
+        final View modifyBookView = inflater.inflate(R.layout.remove_contact, null);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(modifyBookView);
 
-        builder.setCancelable(false)
+        builder.setCancelable(true)
                 .setNegativeButton("No", null)
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface i, int id) {
-                        removeContact(position);
+                        removeContact(contact, position);
                     }
                 })
                 .setTitle("Remove Contact");
@@ -429,8 +429,6 @@ public class ContactsScreen extends Activity {
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialog) {
-                exitIcon.setVisibility(View.GONE);
-                editIcon.setVisibility(View.GONE);
             }
         });
 
@@ -443,8 +441,7 @@ public class ContactsScreen extends Activity {
      * then we finish up by alerting the user the contact was deleted with a Toast.
      * @param position
      */
-    public void removeContact(int position){
-        Contact contact = mContacts.get(position);
+    public void removeContact(Contact contact, int position){
         mBook.removeEntry(position);
         mContactHeaders.remove(position);
         mBook.saveEventually();

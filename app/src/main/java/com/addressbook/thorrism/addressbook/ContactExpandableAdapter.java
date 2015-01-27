@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Typeface;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -113,6 +115,8 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         textIcon.setVisibility(View.GONE);
         mapIcon.setVisibility(View.GONE);
 
+        if(contact == null) Log.e(DroidBook.TAG, "***NULL***");
+
         //Set the values for the views from the contacts from their information
         if(!contact.getFirstName().equals("")) {
             contactName.setText(contact.getFirstName());
@@ -181,7 +185,7 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+    public View getGroupView(final int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         String headerTitle = (String) getGroup(groupPosition);
 
         if (convertView == null) {

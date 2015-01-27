@@ -286,21 +286,6 @@ public class BookSelectionScreen extends Activity {
             contact.fetchIfNeededInBackground();
             contact.deleteEventually();
         }
-
-        //And delete the Address book from the database.
-//        book.deleteInBackground(new DeleteCallback() {
-//
-//            @Override
-//            public void done(ParseException e) {
-//                if(e==null){
-//                    createToast("Deleted Address Book");
-//                }else{
-//                    e.printStackTrace();
-//                    createToast("Failed to delete. Check network settings");
-//                }
-//            }
-//        });
-
         book.deleteEventually();
 
         //Update the display to show book removed
@@ -403,7 +388,7 @@ public class BookSelectionScreen extends Activity {
 
         final EditText bookNameEdit = (EditText) addBookView.findViewById(R.id.newBookEdit);
 
-        builder.setCancelable(false)
+        builder.setCancelable(true)
                 .setNegativeButton("Cancel",
                         new DialogInterface.OnClickListener() {
                             public void onClick(DialogInterface i, int id) {
@@ -440,7 +425,7 @@ public class BookSelectionScreen extends Activity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(modifyBookView);
 
-        builder.setCancelable(false)
+        builder.setCancelable(true)
                 .setNegativeButton("Save", null)
                 .setPositiveButton("Cancel", null)
                 .setTitle("Edit Book Name");
