@@ -331,7 +331,8 @@ public class ContactsScreen extends Activity {
         mExpandableView.setOnGroupExpandListener(new ExpandableListView.OnGroupExpandListener() {
             @Override
             public void onGroupExpand(int groupPosition) {
-                if(mCurrentGroup != -1) mExpandableView.collapseGroup(mCurrentGroup);
+                if(mCurrentGroup != -1 && groupPosition != mCurrentGroup)
+                    mExpandableView.collapseGroup(mCurrentGroup);
                 mCurrentGroup = groupPosition;
                 clearActiveContact();
                 mActiveContact = mExpandableView.getChildAt(groupPosition);
