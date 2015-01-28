@@ -201,6 +201,13 @@ public class SignupScreen extends Activity {
     }
 
     private boolean isNameValid(String name) {
+        Pattern p = Pattern.compile("[^a-zA-Z]");
+        Matcher m = p.matcher(name);
+        boolean b = m.find();
+
+        if (!b)
+            return false;
+        
         return name.length() >= 4;
     }
 
