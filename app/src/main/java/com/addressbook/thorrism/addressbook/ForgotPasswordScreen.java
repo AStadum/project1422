@@ -45,6 +45,11 @@ public class ForgotPasswordScreen extends Activity {
         });
     }
 
+    /**
+     * AsyncTask that queries the cloud database for the user's input email, and returns an
+     * appropriate toast based on if the email was found or not. Either we tell the user the
+     * email was not found, or a password reset was sent to their email.
+     */
     private class RequestResetTask extends AsyncTask<Void, Void, Boolean> {
 
         @Override

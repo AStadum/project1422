@@ -16,8 +16,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,12 +24,9 @@ import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
-import com.parse.SaveCallback;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 public class ContactEditScreen extends Activity {
@@ -48,7 +43,6 @@ public class ContactEditScreen extends Activity {
     private Button   mCancelBtn;
     private EditText mCurrentEdit;
     private LinearLayout mExtrasLayout;
-    private RelativeLayout mRoot;
     private Activity mActivity;
     private List<String> mExtraList;
     private EditText mExtraEdit;
@@ -56,7 +50,6 @@ public class ContactEditScreen extends Activity {
     private View mExtraLine;
     private TextView mExtraButtonText;
     private ImageView mExtraImage;
-    private boolean mExtraAdded;
     private Contact mContact;
 
     @Override
@@ -81,7 +74,6 @@ public class ContactEditScreen extends Activity {
         mAddBtn        = (Button) findViewById(R.id.addContactBtn);
         mCancelBtn     = (Button) findViewById(R.id.cancelContactBtn);
         mExtrasLayout  = (LinearLayout) findViewById(R.id.extrasLayout);
-        mRoot          = (RelativeLayout) findViewById(R.id.rootContactView);
         mExtraEdit     = (EditText) findViewById(R.id.extraDataEdit);
         mExtraTitle    = (TextView) findViewById(R.id.extraTitleView);
         mExtraLine     = (View) findViewById(R.id.extraLineView);
@@ -90,7 +82,6 @@ public class ContactEditScreen extends Activity {
 
         mExtraList     = new ArrayList<String>();
         mActivity      = this;
-        mExtraAdded    = false;
 
         //Add listeners to the EditText fields
         addFocusListener(mFirstNameEdit);
@@ -141,8 +132,6 @@ public class ContactEditScreen extends Activity {
     /**
      * Add the click listeners for the buttons to cancel creating new contact, and adding
      * a new contact. Both buttons return you to the previous screen.
-     *
-     * TODO do input checking for the data fields (first name, lastname, zipcode, etc..)
      */
     public void addButtonListeners(){
 
@@ -218,6 +207,10 @@ public class ContactEditScreen extends Activity {
         dialog.show();
     }
 
+    /**
+     * Opens a dialog box for the user to either edit, or create a new "extra field" for this current
+     * contact.
+     */
     public void createExtraDialog(){
         final LayoutInflater inflater = LayoutInflater.from(this);
 
@@ -225,7 +218,7 @@ public class ContactEditScreen extends Activity {
         final EditText extraTitle = (EditText) createExtraDialog.findViewById(R.id.extraNameEdit);
         final EditText extraData = (EditText) createExtraDialog.findViewById(R.id.extraValueEdit);
 
-        if(mExtraList.size() != 0){
+        if(mExtraList.size() != 0){   //If the list isn't empty, then edit the old "extra field" data
             extraTitle.setText(mExtraList.get(0));
             extraData.setText(mExtraEdit.getText().toString());
         }
@@ -253,10 +246,10 @@ public class ContactEditScreen extends Activity {
 
                     @Override
                     public void onClick(View v) {
-                        mExtraAdded = true;
+                        //If the list isn't empty, we are updating last "extra field" data
                         if(mExtraList.size() != 0) {
                             mExtraList.set(0, extraTitle.getText().toString());
-                            mExtraList.add(1, extraData.getText().toString());
+                            mExtraList.set(1, extraData.getText().toString());
                         }else{
                             mExtraList.add(extraTitle.getText().toString());
                             mExtraList.add(extraData.getText().toString());
@@ -277,11 +270,16 @@ public class ContactEditScreen extends Activity {
         dialog.show();
     }
 
+    /**
+     * Method to check if the user has an extra field, fill it with the data from the intent
+     * extras bundle. Otherwise, we set the extra edit data section invisible and set the button
+     * to say the user can create a new data field.
+     * @param exists
+     */
     public void updateExtraState(boolean exists){
-        mExtraAdded = exists;
         if(exists){ //If user has an existing extra field for this contact
-            mExtraTitle.setText(mExtraList.get(0));
-            mExtraEdit.setText(mExtraList.get(1));
+            mExtraTitle.setText(capitalizeFirstLetter(mExtraList.get(0)));
+            mExtraEdit.setText(capitalizeFirstLetter(mExtraList.get(1)));
             mExtraEdit.setVisibility(View.VISIBLE);
             mExtraLine.setVisibility(View.VISIBLE);
             mExtraTitle.setVisibility(View.VISIBLE);
@@ -322,6 +320,10 @@ public class ContactEditScreen extends Activity {
         });
     }
 
+    /**
+     * Retrieve the data from the user passed through the intent extras bundle, and set the
+     * EditText fields with it. If an extra field exists, add it as well.
+     */
     public void setContactData(){
         mFirstNameEdit.setText(getIntent().getExtras().getString("FirstName"));
         mLastNameEdit.setText(getIntent().getExtras().getString("LastName"));
@@ -436,12 +438,13 @@ public class ContactEditScreen extends Activity {
     }
 
     /**
-     * Create a toast method. Easier than typing this each time.
+     * Ensure that the user has entered a valid zip code. Return false if they didn't, return
+     * true if it is. Only valid zip codes are 5 integer zips or 5 integers a dash and 4 integers
+     * after the dash.
+     *
+     * @param zip - string containing the zip the user has attempted to enter.
+     * @return true if valid, false if not.
      */
-    public void createToast(String message){
-        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
-
     public boolean checkZipInput(String zip){
         boolean result = false;
 
@@ -468,21 +471,23 @@ public class ContactEditScreen extends Activity {
         return result;
     }
 
+    /**
+     * Create a toast method. Easier than typing this each time.
+     */
+    public void createToast(String message){
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.contact_edit_menu, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
         }

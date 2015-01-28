@@ -3,10 +3,8 @@ package com.addressbook.thorrism.addressbook;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
-import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -15,22 +13,16 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
 import com.parse.ParseException;
 import com.parse.ParseObject;
 import com.parse.ParseQuery;
-import com.parse.SaveCallback;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -96,8 +88,6 @@ public class CreateContactScreen extends Activity {
     }
 
     public void addFocusListener(EditText v){
-;
-
         v.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             public void onFocusChange(View v, boolean hasFocus) {
                 //Check if the Version is JELLY BEAN, if so use deprecated setBackground method.
@@ -124,9 +114,7 @@ public class CreateContactScreen extends Activity {
 
     /**
      * Add the click listeners for the buttons to cancel creating new contact, and adding
-     * a new contact. Both buttons return you to the previous screen.
-     *
-     * TODO do input checking for the data fields (first name, lastname, zipcode, etc..)
+     * a new contact.
      */
     public void addButtonListeners(){
 
@@ -145,7 +133,7 @@ public class CreateContactScreen extends Activity {
             }
         });
 
-        //Return the user to the previous screen (Contacts Screen)
+        //Creates a dialog to see if a user is sure they want to cancel their edit
         mCancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -153,6 +141,60 @@ public class CreateContactScreen extends Activity {
                 cancelCreateDialog();
             }
         });
+    }
+
+    /**
+     * Fetch the AddressBook from the database with the specific name the user has selected
+     * on the previous screen. Uses a query with two where clauses, one for matching userID
+     * and one to match the name.
+     * @param name - the name of the AddressBook we query from the database.
+     */
+    public void fetchBook(String name) {
+        ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
+        bookQuery.whereEqualTo("objectId", name);
+
+        bookQuery.findInBackground(new FindCallback<AddressBook>() {
+
+            @Override
+            public void done(List<AddressBook> addressBooks, ParseException e) {
+                if(e == null){
+                    mBook = addressBooks.get(0);
+                    ParseObject.pinAllInBackground(addressBooks);
+                }
+                else{
+                    Log.e(DroidBook.TAG, "Error: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+    /**
+     * AsyncTask that saves the contact created to the local datastore and network if the network
+     * is accessible. If the network isn't accessible, the save is done later.
+     */
+    private class SaveTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        public void onPreExecute() {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mScrollView.setVisibility(View.GONE);
+        }
+
+        @Override
+        public Void doInBackground(Void... params) {
+            mBook.saveEventually();
+            return null;
+        }
+
+        @Override
+        public void onPostExecute(Void result) {
+            mProgressBar.setVisibility(View.GONE);
+            mScrollView.setVisibility(View.VISIBLE);
+            SharedPreferences prefs = getApplicationContext().getSharedPreferences("ADD_STATE", MODE_PRIVATE);
+            prefs.edit().putString("STATE", "NEW").apply();
+            onBackPressed();
+        }
     }
 
     /**
@@ -189,6 +231,14 @@ public class CreateContactScreen extends Activity {
         return result.substring(0, result.length()-1);
     }
 
+    /**
+     * When the user has touched the add contact button, a new contact is attempted to be created if
+     * the user has input correct values for a name and zipcode. Other fields are up to the user to
+     * either input wrong or for whatever they please. Input checking is done to input default fields
+     * if the user hasn't put anything in for the non-required fields.
+     *
+     * @return the newly created contact, or null if the inputs were invalid
+     */
     public Contact createContact(){
         Contact contact = new Contact();
 
@@ -238,8 +288,8 @@ public class CreateContactScreen extends Activity {
             contact.setNumber(mNumberEdit.getText().toString());
         else
             contact.setNumber("");
-        contact.saveEventually();
-      //  contact.pinInBackground();
+
+        contact.saveEventually(); //Saves to the local datastore, and online if the user has network access
         return contact;
     }
 
@@ -283,55 +333,13 @@ public class CreateContactScreen extends Activity {
     }
 
     /**
-     * Fetch the AddressBook from the database with the specific name the user has selected
-     * on the previous screen. Uses a query with two where clauses, one for matching userID
-     * and one to match the name.
-     * @param name - the name of the AddressBook we query from the database.
+     * Ensure that the user has entered a valid zip code. Return false if they didn't, return
+     * true if it is. Only valid zip codes are 5 integer zips or 5 integers a dash and 4 integers
+     * after the dash.
+     *
+     * @param zip - string containing the zip the user has attempted to enter.
+     * @return true if valid, false if not.
      */
-    public void fetchBook(String name) {
-        ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
-        bookQuery.whereEqualTo("objectId", name);
-
-        bookQuery.findInBackground(new FindCallback<AddressBook>() {
-
-            @Override
-            public void done(List<AddressBook> addressBooks, ParseException e) {
-                if(e == null){
-                    mBook = addressBooks.get(0);
-                    ParseObject.pinAllInBackground(addressBooks);
-                }
-                else{
-                    Log.e(DroidBook.TAG, "Error: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    private class SaveTask extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        public void onPreExecute() {
-            mProgressBar.setVisibility(View.VISIBLE);
-            mScrollView.setVisibility(View.GONE);
-        }
-
-        @Override
-        public Void doInBackground(Void... params) {
-            mBook.saveEventually();
-            return null;
-        }
-
-        @Override
-        public void onPostExecute(Void result) {
-            mProgressBar.setVisibility(View.GONE);
-            mScrollView.setVisibility(View.VISIBLE);
-            SharedPreferences prefs = getApplicationContext().getSharedPreferences("ADD_STATE", MODE_PRIVATE);
-            prefs.edit().putString("STATE", "NEW").apply();
-            onBackPressed();
-        }
-    }
-
     public boolean checkZipInput(String zip){
         boolean result = false;
 
@@ -405,7 +413,6 @@ public class CreateContactScreen extends Activity {
 
     @Override
     public void onBackPressed(){
-        //Clear the focus from the current edit text
         super.onBackPressed();
     }
 

@@ -82,7 +82,6 @@ public class ContactsScreen extends Activity {
         //Initialize the Parse instance and fetch the user's contacts
         initParse();
         new FetchBookTask().execute(mBookId);
-        Log.e("TEST", mBookId);
     }
 
     /**
@@ -96,54 +95,29 @@ public class ContactsScreen extends Activity {
     }
 
     /**
-     * The purpose of this function is to return a custom comparator based on which option the
-     * user has selected.
-     * @param compare - the type of sort the user wants to perform
-     * @return custom comparator returned to sort the contacts based on the parameter chosen.
+     * Add the listeners for the contact's which are headers in the ExpandableListView. When a group
+     * is expanded, clear the current contact's icons for edit / remove if they are visible.
      */
-    public void setComparator(int compare){
-        Comparator<Contact> result = null;
+    public void addHeaderListeners(){
+        mExpandableView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
 
-        //By zipcode, we check if zipcodes are equal if so, compare the names, if not just return zip codes
-        if(compare == 0) {
-            result = new Comparator<Contact>() {
-                @Override
-                public int compare(Contact lhs, Contact rhs) {
-                    int val = lhs.getZipcode().compareTo(rhs.getZipcode());
-                    if (val == 0)
-                        return (lhs.getFirstName() + lhs.getLastName()).compareTo(rhs.getFirstName() + rhs.getLastName());
-                    else return val;
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                long packedPosition = mExpandableView.getExpandableListPosition(position);
+
+                int itemType        = ExpandableListView.getPackedPositionType(packedPosition);
+                int groupPosition   = ExpandableListView.getPackedPositionGroup(packedPosition);
+                int childPosition   = ExpandableListView.getPackedPositionChild(packedPosition);
+
+                if(itemType == ExpandableListView.PACKED_POSITION_TYPE_GROUP){
+                    Contact contact = (Contact) mAdapter.getChild(groupPosition, 0);
+                    contactDialog(contact, groupPosition);
+                    mVibrator.vibrate(100);
                 }
-            };
-        }
 
-        //By last name sort, just compare last names
-        if(compare == 1) {
-            result = new Comparator<Contact>() {
-                @Override
-                public int compare(Contact lhs, Contact rhs) {
-                    int val = lhs.getLastName().compareTo(rhs.getLastName());
-                    if (val == 0)
-                        return (lhs.getFirstName() + lhs.getLastName()).compareTo((rhs.getFirstName() + rhs.getLastName()));
-                    else return val;
-                }
-            };
-        }
-
-        //By last name sort, just compare last names
-        if(compare == 2) {
-            result = new Comparator<Contact>() {
-                @Override
-                public int compare(Contact lhs, Contact rhs) {
-                    int val = lhs.getFirstName().compareTo(rhs.getFirstName());
-                    if (val == 0)
-                        return (lhs.getFirstName() + lhs.getLastName()).compareTo((rhs.getFirstName() + rhs.getLastName()));
-                    else return val;
-                }
-            };
-        }
-
-        mComparator = result;
+                return false;
+            }
+        });
     }
 
     /**
@@ -223,6 +197,11 @@ public class ContactsScreen extends Activity {
         }
     }
 
+    /**
+     * AsyncTask that quickly sorts the contacts based on the current comparator
+     * for the contacts. The user can change the compare-type and this is called each
+     * time that happens, or a contact is updated in order to maintain the correct sort.
+     */
     private class SortContactsTask extends AsyncTask<Void, Void, Void>{
 
         @Override
@@ -256,6 +235,11 @@ public class ContactsScreen extends Activity {
         }
     }
 
+    /**
+     * AsyncTask that updates the contacts list every time a user has made an edit to a contact.
+     * The contact is fetched again, in order to update it's values, and the ExpandableListView
+     * is notified on a data set changed. The result is an updated contacts list for the user.
+     */
     private class UpdateContactTask extends AsyncTask<String, Void, Void>{
 
         @Override
@@ -271,7 +255,6 @@ public class ContactsScreen extends Activity {
             //Find the updated contact that matches our parameter objectID.
             for(int i=0; i<mContacts.size(); ++i){
                 contact = mContacts.get(i);
-                Log.e("TAG", "SIZE: " + Integer.toString(i));
                 if(contact.getObjectId() == null) return null;
                 if(contact.getObjectId().equals(params[0])){
                     try{
@@ -279,7 +262,8 @@ public class ContactsScreen extends Activity {
                             contact.fetchFromLocalDatastore();
                             result = contact;
                         }catch(ParseException e){
-                            result = contact.fetch();
+                            e.printStackTrace();
+                            result = contact.fetch(); //Fetch if the datastore search fails
                         }
                         mContactHeaders.set(i, result.getFirstName() + " " + result.getLastName());
                         mContactData.put(mContactHeaders.get(i), result);
@@ -310,31 +294,62 @@ public class ContactsScreen extends Activity {
     }
 
     /**
-     * Add the listeners for the contact's which are headers in the ExpandableListView. When a group
-     * is expanded, clear the current contact's icons for edit / remove if they are visible.
+     * The purpose of this function is to return a custom comparator based on which option the
+     * user has selected.
+     * @param compare - the type of sort the user wants to perform
+     * @return custom comparator returned to sort the contacts based on the parameter chosen.
      */
-    public void addHeaderListeners(){
-        mExpandableView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+    public void setComparator(int compare){
+        Comparator<Contact> result = null;
 
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                long packedPosition = mExpandableView.getExpandableListPosition(position);
-
-                int itemType        = ExpandableListView.getPackedPositionType(packedPosition);
-                int groupPosition   = ExpandableListView.getPackedPositionGroup(packedPosition);
-                int childPosition   = ExpandableListView.getPackedPositionChild(packedPosition);
-
-                if(itemType == ExpandableListView.PACKED_POSITION_TYPE_GROUP){
-                    Contact contact = (Contact) mAdapter.getChild(groupPosition, 0);
-                    contactDialog(contact, groupPosition);
-                    mVibrator.vibrate(100);
+        //By zipcode, we check if zipcodes are equal if so, compare the names, if not just return zip codes
+        if(compare == 0) {
+            result = new Comparator<Contact>() {
+                @Override
+                public int compare(Contact lhs, Contact rhs) {
+                    int val = lhs.getZipcode().compareTo(rhs.getZipcode());
+                    if (val == 0)
+                        return (lhs.getFirstName() + lhs.getLastName()).compareTo(rhs.getFirstName() + rhs.getLastName());
+                    else return val;
                 }
+            };
+        }
 
-                return false;
-            }
-        });
+        //By last name sort, just compare last names
+        if(compare == 1) {
+            result = new Comparator<Contact>() {
+                @Override
+                public int compare(Contact lhs, Contact rhs) {
+                    int val = lhs.getLastName().compareTo(rhs.getLastName());
+                    if (val == 0)
+                        return (lhs.getFirstName() + lhs.getLastName()).compareTo((rhs.getFirstName() + rhs.getLastName()));
+                    else return val;
+                }
+            };
+        }
+
+        //By last name sort, just compare last names
+        if(compare == 2) {
+            result = new Comparator<Contact>() {
+                @Override
+                public int compare(Contact lhs, Contact rhs) {
+                    int val = lhs.getFirstName().compareTo(rhs.getFirstName());
+                    if (val == 0)
+                        return (lhs.getFirstName() + lhs.getLastName()).compareTo((rhs.getFirstName() + rhs.getLastName()));
+                    else return val;
+                }
+            };
+        }
+
+        mComparator = result;
     }
 
+    /**
+     * If a user chooses to edit a contact, package all the contacts details into an extra bundle
+     * and start the ContactEditActivty with an intent that has the contact's extra bundle.
+     * Also packages any extra fields into the intent's extras bundle if they exist.
+     * @param contact
+     */
     public void editContact(Contact contact){
         Intent intent = new Intent(this, ContactEditScreen.class);
         intent.putExtra("ContactID", contact.getObjectId());
@@ -356,10 +371,15 @@ public class ContactsScreen extends Activity {
             intent.putExtra("ExtrasTitle", "");
             intent.putExtra("ExtrasData", "");
         }
-
-        startActivity(intent);
+        startActivity(intent); //Start the edit contact screen activity
     }
 
+    /**
+     * Dialog box for the user to decide how they want to interact with a contact they LongClicked
+     * from the ExandableListView. Choices are either, edit or remove.
+     * @param contact - the contact interacted with
+     * @param position - position in the ExpandableListView that was LongClicked.
+     */
     public void contactDialog(final Contact contact, final int position){
         LayoutInflater inflater = LayoutInflater.from(this);
 
@@ -443,7 +463,7 @@ public class ContactsScreen extends Activity {
     }
 
     /**
-     * When the user clickes the remove button, and confirms it, we delete the contact from
+     * When the user clicks the remove button, and confirms it, we delete the contact from
      * the database in the background, update the associated Address book and save it, and
      * then we finish up by alerting the user the contact was deleted with a Toast.
      * @param position
@@ -493,7 +513,6 @@ public class ContactsScreen extends Activity {
 
 
     /**
-     * +
      * When a user selects "Choose new Address Book" they return to the previous screen
      * and can select another address book to be active
      */

@@ -4,9 +4,7 @@ import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Typeface;
 import android.net.Uri;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +13,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -118,7 +115,8 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         textIcon.setVisibility(View.GONE);
         mapIcon.setVisibility(View.GONE);
 
-        //Set the values for the views from the contacts from their information
+        //Set the values for the views from the contacts from their information. Lots of input
+        //checking done below to ensure we only add fields if we need it. (includes visibility on/off too)
         if(!contact.getFirstName().equals("")) {
             contactName.setText(contact.getFirstName());
             if(!contact.getLastName().equals("")){
