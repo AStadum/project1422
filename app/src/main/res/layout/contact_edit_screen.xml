@@ -114,25 +114,10 @@
                 android:maxLines="1"
                 android:padding="5dp"
                 android:textColor="#000"
-                android:hint="@string/address_input"
+                android:hint="@string/street_input"
                 android:clickable="true"
                 android:textCursorDrawable="@drawable/blackcursor"
                 android:background="@drawable/edit_text_form"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="10dp"
-                android:layout_marginBottom="2dp"
-                android:text="@string/city_input"
-                android:textAllCaps="true"
-                android:textColor="#00BFFF"
-                android:textSize="10sp"/>
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:background="#00BFFF"/>
 
             <EditText
                 android:id="@+id/cityNameEdit"
@@ -150,22 +135,6 @@
                 android:textCursorDrawable="@drawable/blackcursor"
                 android:background="@drawable/edit_text_form"/>
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="10dp"
-                android:layout_marginBottom="2dp"
-                android:text="@string/state_input"
-                android:textAllCaps="true"
-                android:textColor="#00BFFF"
-                android:textSize="10sp"/>
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:background="#00BFFF"
-                />
-
             <EditText
                 android:id="@+id/stateNameEdit"
                 android:layout_width="fill_parent"
@@ -181,21 +150,6 @@
                 android:clickable="true"
                 android:textCursorDrawable="@drawable/blackcursor"
                 android:background="@drawable/edit_text_form"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="10dp"
-                android:layout_marginBottom="2dp"
-                android:text="@string/zipcode_input"
-                android:textAllCaps="true"
-                android:textColor="#00BFFF"
-                android:textSize="10sp"/>
-
-            <View
-                android:layout_width="fill_parent"
-                android:layout_height="1dp"
-                android:background="#00BFFF"/>
 
             <EditText
                 android:id="@+id/zipcodeEdit"
@@ -271,10 +225,76 @@
                 android:padding="5dp"
                 android:textColor="#000"
                 android:hint="@string/email_input"
-                android:layout_marginBottom="75dp"
                 android:clickable="true"
                 android:textCursorDrawable="@drawable/blackcursor"
                 android:background="@drawable/edit_text_form"/>
+
+            <TextView
+                android:id="@+id/extraTitleView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="10dp"
+                android:layout_marginBottom="2dp"
+                android:textAllCaps="true"
+                android:textColor="#00BFFF"
+                android:textSize="10sp"
+                android:visibility="gone"/>
+
+            <View
+                android:id="@+id/extraLineView"
+                android:layout_width="fill_parent"
+                android:layout_height="1dp"
+                android:background="#00BFFF"
+                android:visibility="gone"/>
+
+            <EditText
+                android:id="@+id/extraDataEdit"
+                android:layout_width="fill_parent"
+                android:layout_height="40dp"
+                android:paddingLeft="6dp"
+                android:layout_marginTop="2dp"
+                android:inputType="text"
+                android:singleLine="true"
+                android:maxLines="1"
+                android:padding="5dp"
+                android:textColor="#000"
+                android:hint="@string/extra_field_data"
+                android:clickable="true"
+                android:textCursorDrawable="@drawable/blackcursor"
+                android:background="@drawable/edit_text_form"
+                android:visibility="gone"/>
+
+            <LinearLayout
+                android:id="@+id/extrasLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="20dp"
+                android:padding="5dp"
+                android:layout_marginBottom="75dp"
+                android:background="@drawable/edit_text_form">
+
+                <ImageView
+                    android:id="@+id/add_extra_icon"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@string/add_field"
+                    android:layout_gravity="center"
+                    android:paddingRight="10dp"
+                    android:src="@drawable/ic_add_field"/>
+
+                <TextView
+                    android:id="@+id/add_extra_view"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/add_field"
+                    android:textStyle="bold"
+                    android:layout_gravity="center"
+                    android:textSize="20sp"
+                    android:textColor="#000"/>
+
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
@@ -311,7 +331,6 @@
             android:background="#BBB"
             android:scaleType="fitCenter"
             android:textColor="#000"/>
-
     </LinearLayout>
 
     <ProgressBar

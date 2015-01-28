@@ -349,6 +349,17 @@ public class ContactsScreen extends Activity {
         intent.putExtra("StateName", contact.getState());
         intent.putExtra("Number", contact.getNumber());
         intent.putExtra("Email", contact.getEmail());
+
+        //Check if we need to add the extras
+        List<String> contactExtras = contact.getExtras();
+        if(contactExtras.size() != 0) {
+            intent.putExtra("ExtrasTitle", contactExtras.get(0));
+            intent.putExtra("ExtrasData", contactExtras.get(1));
+        }else{
+            intent.putExtra("ExtrasTitle", "");
+            intent.putExtra("ExtrasData", "");
+        }
+
         startActivity(intent);
     }
 
@@ -431,7 +442,6 @@ public class ContactsScreen extends Activity {
             public void onDismiss(DialogInterface dialog) {
             }
         });
-
         dialog.show();
     }
 

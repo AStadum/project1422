@@ -2,17 +2,24 @@ package com.addressbook.thorrism.addressbook;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
@@ -22,13 +29,13 @@ import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class ContactEditScreen extends Activity {
-
     private ScrollView mScrollView;
-    private ProgressBar mProgressBar;
     private EditText mFirstNameEdit;
     private EditText mLastNameEdit;
     private EditText mAddressEdit;
@@ -40,13 +47,23 @@ public class ContactEditScreen extends Activity {
     private Button mAddBtn;
     private Button   mCancelBtn;
     private EditText mCurrentEdit;
+    private LinearLayout mExtrasLayout;
+    private RelativeLayout mRoot;
     private Activity mActivity;
+    private List<String> mExtraList;
+    private EditText mExtraEdit;
+    private TextView mExtraTitle;
+    private View mExtraLine;
+    private TextView mExtraButtonText;
+    private ImageView mExtraImage;
+    private boolean mExtraAdded;
     private Contact mContact;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.contact_edit_screen);
+
         //Set the logo for the action bar, replaces the icon + label
         ActionBar actionBar = getActionBar();
         actionBar.setIcon(R.drawable.ic_logo);
@@ -63,8 +80,17 @@ public class ContactEditScreen extends Activity {
         mScrollView    = (ScrollView) findViewById(R.id.newContactScroll);
         mAddBtn        = (Button) findViewById(R.id.addContactBtn);
         mCancelBtn     = (Button) findViewById(R.id.cancelContactBtn);
-        mProgressBar   = (ProgressBar) findViewById(R.id.addContactsSpinner);
+        mExtrasLayout  = (LinearLayout) findViewById(R.id.extrasLayout);
+        mRoot          = (RelativeLayout) findViewById(R.id.rootContactView);
+        mExtraEdit     = (EditText) findViewById(R.id.extraDataEdit);
+        mExtraTitle    = (TextView) findViewById(R.id.extraTitleView);
+        mExtraLine     = (View) findViewById(R.id.extraLineView);
+        mExtraImage    = (ImageView) findViewById(R.id.add_extra_icon);
+        mExtraButtonText = (TextView) findViewById(R.id.add_extra_view);
+
+        mExtraList     = new ArrayList<String>();
         mActivity      = this;
+        mExtraAdded    = false;
 
         //Add listeners to the EditText fields
         addFocusListener(mFirstNameEdit);
@@ -75,9 +101,11 @@ public class ContactEditScreen extends Activity {
         addFocusListener(mZipcodeEdit);
         addFocusListener(mEmailEdit);
         addFocusListener(mNumberEdit);
+        addFocusListener(mExtraEdit);
 
         //Add listeners to the buttons
         addButtonListeners();
+        addExtraListener();
 
         //Fetch the contact and fill in the data from the contact
         fetchContact(getIntent().getExtras().getString("ContactID"));
@@ -131,9 +159,142 @@ public class ContactEditScreen extends Activity {
             @Override
             public void onClick(View v) {
                 DroidBook.hideKeyboard(mCurrentEdit, getApplicationContext());
-                mActivity.finish();
+                cancelEditDialog();
             }
         });
+    }
+
+    /**
+     * Add a listener to the extra fields layout to listen for a user click. Either opens
+     * a dialog for a new extra field, or one to edit the previous data.
+     */
+    public void addExtraListener(){
+        mExtrasLayout.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                createExtraDialog();
+            }
+        });
+    }
+
+    /**
+     * Opens a dialog box confirming if a user truly wants to cancel editing a contact
+     * @param
+     */
+    public void cancelEditDialog() {
+        LayoutInflater inflater = LayoutInflater.from(this);
+
+        final View cancelEditView = inflater.inflate(R.layout.contact_edit_cancel, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(cancelEditView);
+
+        builder.setCancelable(true)
+                .setNegativeButton("No", new DialogInterface.OnClickListener(){
+                    public void onClick(DialogInterface i, int id) {
+                        i.dismiss();
+                    }
+                })
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface i, int id) {
+                        mActivity.finish();
+                    }
+                })
+                .setTitle("Cancel contact edit");
+
+        //Set the icon for the dialog window to the app's icon
+        builder.setIcon(R.drawable.ic_launcher);
+
+        //Build the dialog and create custom listeners for buttons
+        final AlertDialog dialog = builder.create();
+
+        //Remove the icons for the contact edit / remove to be visible
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+            }
+        });
+        dialog.show();
+    }
+
+    public void createExtraDialog(){
+        final LayoutInflater inflater = LayoutInflater.from(this);
+
+        View createExtraDialog = inflater.inflate(R.layout.create_extra, null);
+        final EditText extraTitle = (EditText) createExtraDialog.findViewById(R.id.extraNameEdit);
+        final EditText extraData = (EditText) createExtraDialog.findViewById(R.id.extraValueEdit);
+
+        if(mExtraList.size() != 0){
+            extraTitle.setText(mExtraList.get(0));
+            extraData.setText(mExtraEdit.getText().toString());
+        }
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(createExtraDialog);
+
+        builder.setCancelable(true)
+                .setNegativeButton("Add", null)
+                .setPositiveButton("Cancel", null)
+                .setTitle("Create new field");
+
+        //Set the icon for the dialog window to the app's icon
+        builder.setIcon(R.drawable.ic_launcher);
+
+        //Build the dialog and create custom listeners for buttons
+        final AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(new DialogInterface.OnShowListener() {
+            @Override
+            public void onShow(DialogInterface d) {
+                final Button saveBtn   = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+                final Button cancelBtn = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+
+                saveBtn.setOnClickListener(new View.OnClickListener() {
+
+                    @Override
+                    public void onClick(View v) {
+                        mExtraAdded = true;
+                        if(mExtraList.size() != 0) {
+                            mExtraList.set(0, extraTitle.getText().toString());
+                            mExtraList.add(1, extraData.getText().toString());
+                        }else{
+                            mExtraList.add(extraTitle.getText().toString());
+                            mExtraList.add(extraData.getText().toString());
+                        }
+                        updateExtraState(true);
+                        dialog.dismiss();
+                    }
+                });
+
+                cancelBtn.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                    }
+                });
+            }
+        });
+        dialog.show();
+    }
+
+    public void updateExtraState(boolean exists){
+        mExtraAdded = exists;
+        if(exists){ //If user has an existing extra field for this contact
+            mExtraTitle.setText(mExtraList.get(0));
+            mExtraEdit.setText(mExtraList.get(1));
+            mExtraEdit.setVisibility(View.VISIBLE);
+            mExtraLine.setVisibility(View.VISIBLE);
+            mExtraTitle.setVisibility(View.VISIBLE);
+            mExtraImage.setVisibility(View.GONE);
+            mExtraButtonText.setText("Edit extra field");
+        }else{   //If user has removed the extra field for this contact
+            mExtraEdit.setVisibility(View.GONE);
+            mExtraLine.setVisibility(View.GONE);
+            mExtraTitle.setVisibility(View.GONE);
+            mExtraImage.setVisibility(View.VISIBLE);
+            mExtraList = new ArrayList<String>();
+            mExtraButtonText.setText(this.getResources().getString(R.string.add_field));
+        }
     }
 
     /**
@@ -170,6 +331,12 @@ public class ContactEditScreen extends Activity {
         mZipcodeEdit.setText(getIntent().getExtras().getString("ZipCode"));
         mNumberEdit.setText(getIntent().getExtras().getString("Number"));
         mEmailEdit.setText(getIntent().getExtras().getString("Email"));
+
+        if(!getIntent().getExtras().getString("ExtrasTitle").equals("")) {
+            mExtraList.add(getIntent().getExtras().getString("ExtrasTitle"));
+            mExtraList.add(getIntent().getExtras().getString("ExtrasData"));
+            updateExtraState(true);
+        }
     }
 
     /**
@@ -211,6 +378,10 @@ public class ContactEditScreen extends Activity {
      * the contact and return to the contact screen.
      */
     public void saveContact(){
+
+        //Add a new extra to the contact field
+         mContact.setExtras(mExtraList);
+
         if(mFirstNameEdit.getText().toString().length() != 0)
             mContact.setFirstName(capitalizeFirstLetter(mFirstNameEdit.getText().toString()));
         else {

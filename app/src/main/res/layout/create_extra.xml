@@ -1,0 +1,60 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_vertical_margin"
+    android:paddingRight="@dimen/activity_vertical_margin"
+    android:paddingTop="20dp"
+    android:paddingBottom="20dp"
+    >
+
+    <TextView
+        android:id="@+id/extraNameView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/field_name"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:paddingLeft="10dp"/>
+
+    <EditText
+        android:id="@+id/extraNameEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="6"
+        android:maxEms="6"
+        android:layout_toEndOf="@+id/extraNameView"
+        android:layout_toRightOf="@+id/extraNameView"
+        android:paddingLeft="5dp"
+        android:paddingBottom="2dp"
+        android:layout_marginLeft="10dp"
+        android:inputType="text"
+        android:singleLine="true"
+        android:textColor="#000"
+        android:hint="@string/book_add_hint"
+        android:textColorHint="#aaa"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textCursorDrawable="@drawable/blackcursor"
+        android:background="@drawable/edit_text_dialog"
+        />
+
+    <EditText
+        android:id="@+id/extraValueEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ems="6"
+        android:maxEms="6"
+        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
+        android:paddingLeft="5dp"
+        android:layout_marginTop="40dp"
+        android:paddingBottom="2dp"
+        android:inputType="text"
+        android:singleLine="true"
+        android:textColor="#000"
+        android:hint="@string/extra_field_data"
+        android:textColorHint="#aaa"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textCursorDrawable="@drawable/blackcursor"
+        android:background="@drawable/edit_text_dialog"
+        />
+</RelativeLayout>

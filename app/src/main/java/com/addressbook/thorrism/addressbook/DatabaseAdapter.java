@@ -128,21 +128,4 @@ public class DatabaseAdapter{
     public boolean truncateContacts(){
         return mDatabase.delete(TABLE_NAME, null, null) > 0;
     }
-
-    /**
-     * Auxiliary test function to see if our database works for inputting a few names only.
-     */
-//    public void testCreate(){
-//        String[] testNames = {"John Doe", "Mary Jane", "Jane Smith", "John Smith", "Theodore Roosevelt",
-//                "Kim Jong Un"};
-//        for(int i=0; i<6; ++i){
-//            Contact contact = new Contact();
-//            String[] name   = testNames[i].split(" ", 2);
-//            contact.setFirstName(name[0]);
-//            contact.setLastName(name[1]);
-//            createContact(contact);
-//        }
-//    }
-
-    //ADD UPDATE, DELETE ALL, FETCH-BY-NAME
 }

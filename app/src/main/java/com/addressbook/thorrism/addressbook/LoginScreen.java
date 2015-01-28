@@ -304,6 +304,4 @@ public class LoginScreen extends Activity {
         super.onDestroy();
         DroidBook.getInstance().loginScreenActivity = null;
     }
-
-
 }

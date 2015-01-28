@@ -523,6 +523,12 @@ public class BookSelectionScreen extends Activity {
     public void onDestroy(){
         super.onDestroy();
         DroidBook.getInstance().bookSelectionActivity = null;
+        DroidBook.getInstance().close();
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
     }
 
     /*Prevent the user from returning to the splash screen (it is done)*/

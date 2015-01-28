@@ -10,12 +10,13 @@
     <string name="title_activity_start_screen">StartScreen</string>
     <string name="empty_books">No Address books Found!</string>
     <string name="create_book">Create Address book</string>
-    <string name="create_contact">Create Contact</string>
+    <string name="create_contact">New Contact</string>
     <string name="edit_contact">Edit contact</string>
     <string name="delete_contact">Delete contact</string>
     <string name="first_name">First Name</string>
     <string name="last_name">Last Name</string>
-    <string name="address_input">Street</string>
+    <string name="address_input">Address</string>
+    <string name="street_input">Street</string>
     <string name="zipcode_input">ZIP code</string>
     <string name="number_input">Number</string>
     <string name="email_input">Email</string>
@@ -31,6 +32,10 @@
     <string name="save_contact">Save</string>
     <string name="cancel_contact">Cancel</string>
     <string name="empty_contacts">No Contacts Found!</string>
+    <string name="add_field">Add another field</string>
+    <string name="cancel_edit_message">Are you sure you want to cancel?</string>
+    <string name="field_name">Field name: </string>
+    <string name="extra_field_data">Data</string>
     <string name="contact_item_header">A</string>
     <string name="return_to_books">Return to Address Books</string>
     <string name="remove_contact_message">Are you sure? Deleting a contact is permanent.</string>

@@ -38,6 +38,7 @@
             android:textColorHint="#aaa"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:background="@drawable/edit_text_dialog"
+            android:textCursorDrawable="@drawable/blackcursor"
             />
 
     </LinearLayout>

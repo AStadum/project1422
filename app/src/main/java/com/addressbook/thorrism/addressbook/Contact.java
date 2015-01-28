@@ -3,6 +3,9 @@ package com.addressbook.thorrism.addressbook;
 import com.parse.ParseClassName;
 import com.parse.ParseObject;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * Created by Lucas Crawford on 1/6/2015.
  */
@@ -81,5 +84,13 @@ public class Contact extends ParseObject{
 
     public String getEmail(){
         return getString("email");
+    }
+
+    public List<String> getExtras(){
+        return getList("extras");
+    }
+
+    public void setExtras(List<String> extras){
+        put("extras", extras);
     }
 }

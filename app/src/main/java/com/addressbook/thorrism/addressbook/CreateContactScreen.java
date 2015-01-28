@@ -2,21 +2,28 @@ package com.addressbook.thorrism.addressbook;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.graphics.Point;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.FindCallback;
@@ -127,7 +134,6 @@ public class CreateContactScreen extends Activity {
         mAddBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                //TODO DO INPUT CHECKING HERE.
                 Contact contact = createContact();
                 if(contact == null) Log.e(DroidBook.TAG, "Null");
                 else{
@@ -144,7 +150,7 @@ public class CreateContactScreen extends Activity {
             @Override
             public void onClick(View v) {
                 DroidBook.hideKeyboard(mCurrentEdit, getApplicationContext());
-                mActivity.finish();
+                cancelCreateDialog();
             }
         });
     }
@@ -185,6 +191,10 @@ public class CreateContactScreen extends Activity {
 
     public Contact createContact(){
         Contact contact = new Contact();
+
+        //Initialize empty extra
+        contact.setExtras(new ArrayList<String>());
+
         if(mFirstNameEdit.getText().toString().length() != 0)
             contact.setFirstName(capitalizeFirstLetter(mFirstNameEdit.getText().toString()));
         else {
@@ -233,6 +243,44 @@ public class CreateContactScreen extends Activity {
         return contact;
     }
 
+    /**
+     * Opens a dialog box confirming if a user truly wants to cancel editing a contact
+     */
+    public void cancelCreateDialog() {
+        LayoutInflater inflater = LayoutInflater.from(this);
+
+        final View cancelEditView = inflater.inflate(R.layout.contact_edit_cancel, null);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(cancelEditView);
+
+        builder.setCancelable(true)
+                .setNegativeButton("No", new DialogInterface.OnClickListener(){
+                    public void onClick(DialogInterface i, int id) {
+                        i.dismiss();
+                    }
+                })
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface i, int id) {
+                        mActivity.finish();
+                    }
+                })
+                .setTitle("Cancel contact create");
+
+        //Set the icon for the dialog window to the app's icon
+        builder.setIcon(R.drawable.ic_launcher);
+
+        //Build the dialog and create custom listeners for buttons
+        final AlertDialog dialog = builder.create();
+
+        //Remove the icons for the contact edit / remove to be visible
+        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
+            @Override
+            public void onDismiss(DialogInterface dialog) {
+            }
+        });
+        dialog.show();
+    }
 
     /**
      * Fetch the AddressBook from the database with the specific name the user has selected

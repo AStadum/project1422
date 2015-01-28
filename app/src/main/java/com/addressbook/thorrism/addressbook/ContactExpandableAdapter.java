@@ -45,6 +45,9 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         return this.listData.get(this.listHeaders.get(groupPosition));
     }
 
+    /**
+     * All the click listeners for the call / text / map GPS image objects are below.
+     */
     public void addCallListenener(ImageView view, final Contact contact){
         view.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,11 +118,12 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         textIcon.setVisibility(View.GONE);
         mapIcon.setVisibility(View.GONE);
 
-        if(contact == null) Log.e(DroidBook.TAG, "***NULL***");
-
         //Set the values for the views from the contacts from their information
         if(!contact.getFirstName().equals("")) {
             contactName.setText(contact.getFirstName());
+            if(!contact.getLastName().equals("")){
+                contactName.setText(contact.getFirstName() + " " + contact.getLastName());
+            }
             contactName.setVisibility(View.VISIBLE);
         }
         if(!contact.getAddress().equals("")) {
