@@ -1,8 +1,8 @@
 package com.addressbook.thorrism.addressbook;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
@@ -14,12 +14,10 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.parse.Parse;
 import com.parse.ParseException;
@@ -34,6 +32,7 @@ public class LoginScreen extends Activity {
     private EditText mPasswordView;
     private TextView mErrorUsernameView;
     private TextView mErrorPasswordView;
+    private TextView mForgotPasswordView;
     private Button   mLoginBtn;
     private ProgressBar mProgressBar;
     private boolean  displayBtn;
@@ -44,16 +43,18 @@ public class LoginScreen extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.user_login_screen);
 
-        mUserView          = (EditText) findViewById(R.id.login_username);
-        mPasswordView      = (EditText) findViewById(R.id.login_password);
-        mErrorUsernameView = (TextView) findViewById(R.id.error_username);
-        mErrorPasswordView = (TextView) findViewById(R.id.error_password);
-        mLoginBtn          = (Button) findViewById(R.id.login_button);
-        mProgressBar       = (ProgressBar) findViewById(R.id.loginSpinner);
-        displayBtn         = false;
+        mUserView           = (EditText) findViewById(R.id.login_username);
+        mPasswordView       = (EditText) findViewById(R.id.login_password);
+        mErrorUsernameView  = (TextView) findViewById(R.id.error_username);
+        mErrorPasswordView  = (TextView) findViewById(R.id.error_password);
+        mForgotPasswordView = (TextView) findViewById(R.id.forgot_password);
+        mLoginBtn           = (Button) findViewById(R.id.login_button);
+        mProgressBar        = (ProgressBar) findViewById(R.id.loginSpinner);
+        displayBtn          = false;
 
         //Add listeners for the password input and login button
         addListeners();
+        addForgotPasswordListener();
 
         //Initialize the parse database
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
@@ -137,7 +138,7 @@ public class LoginScreen extends Activity {
            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                if ((event != null && (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) || (actionId == EditorInfo.IME_ACTION_DONE)) {
                    new CheckUsername().execute(mUserView.getText().toString());
-                   DroidBook.getInstance().hideKeyboard(mPasswordView, getApplicationContext());
+                   DroidBook.hideKeyboard(mPasswordView, getApplicationContext());
                    return true;
                }
                return false;
@@ -149,12 +150,21 @@ public class LoginScreen extends Activity {
            @Override
            public void onClick(View v) {
                new CheckUsername().execute(mUserView.getText().toString());
-               DroidBook.getInstance().hideKeyboard(mPasswordView, getApplicationContext());
+               DroidBook.hideKeyboard(mPasswordView, getApplicationContext());
            }
        });
     }
 
 
+    public void addForgotPasswordListener(){
+        mForgotPasswordView.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(getApplicationContext(), ForgotPasswordScreen.class));
+            }
+        });
+    }
 
 
     /*Async thread to check if a username entered by the user exists in the Parse user database*/
@@ -195,7 +205,7 @@ public class LoginScreen extends Activity {
             //Username not found, let the user know the username was wrong.
             else {
                 mErrorUsernameView.setText(getString(R.string.error_username_message));
-                final Drawable xImage = getApplicationContext().getResources().getDrawable(R.drawable.ximage);
+                final Drawable xImage = getApplicationContext().getResources().getDrawable(R.drawable.ic_list_remove);
                 mUserView.setCompoundDrawablesWithIntrinsicBounds(null, null, xImage, null);
 
                 //Add listener to remove on touch the red x and message drawn for incorrect input
@@ -252,10 +262,17 @@ public class LoginScreen extends Activity {
         @Override
         protected void onPostExecute(Boolean result){
 
-            //Login was successful, start the app
+            //Login was successful, start the app on address book screen.
             if(result){
+                ParseUser user = ParseUser.getCurrentUser();
                 DroidBook.username = mUserView.getText().toString();
-                DroidBook.getInstance().setUser(ParseUser.getCurrentUser());
+                DroidBook.getInstance().setUser(user);
+
+                //When logged in, set the new user-id
+                SharedPreferences prefs = getApplicationContext().getSharedPreferences("USER", MODE_PRIVATE);
+                prefs.edit().putString("USER-ID", user.getObjectId()).apply();
+
+                //Open the address book activity!
                 startActivity(new Intent(getBaseContext(), BookSelectionScreen.class));
             }
 
@@ -263,7 +280,7 @@ public class LoginScreen extends Activity {
             else{
                 //Display wrong password, and tell user to try again.
                 mErrorPasswordView.setText(getString(R.string.error_password_message));
-                final Drawable xImage = getApplicationContext().getResources().getDrawable(R.drawable.ximage);
+                final Drawable xImage = getApplicationContext().getResources().getDrawable(R.drawable.ic_list_remove);
                 mPasswordView.setCompoundDrawablesWithIntrinsicBounds(null, null, xImage, null);
 
                 //Add listener to remove on touch the red x and message drawn for incorrect input

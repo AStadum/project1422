@@ -9,6 +9,10 @@
     <string name="sign_up">Create Account</string>
     <string name="login_user">Login</string>
     <string name="logout_user">Logout</string>
+    <string name="forgot_password">Forgot password?</string>
+    <string name="recover_account">Account Recovery</string>
+    <string name="account_email">Account email</string>
+    <string name="request_info">Reset password</string>
     <string name="error_invalid_email">This email address is invalid</string>
     <string name="error_invalid_password1">This password is too short</string>
     <string name="error_invalid_password2">This password must contain special character</string>

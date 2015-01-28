@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -16,18 +15,15 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ExpandableListView;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.parse.DeleteCallback;
-import com.parse.GetCallback;
 import com.parse.Parse;
 import com.parse.ParseException;
 import com.parse.ParseObject;
@@ -86,6 +82,7 @@ public class ContactsScreen extends Activity {
         //Initialize the Parse instance and fetch the user's contacts
         initParse();
         new FetchBookTask().execute(mBookId);
+        Log.e("TEST", mBookId);
     }
 
     /**
@@ -164,12 +161,12 @@ public class ContactsScreen extends Activity {
 
         @Override
         protected Boolean doInBackground(String... params){
-            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
+            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
 
             if(bookQuery == null)
                 DroidBook.getInstance().close();
             else
-                bookQuery.whereEqualTo("objectId", params[0]);
+                bookQuery.whereEqualTo("objectId", params[0]).fromLocalDatastore();
 
             try{
                 List<AddressBook> books = bookQuery.find();
@@ -184,10 +181,10 @@ public class ContactsScreen extends Activity {
                     try{
                         contact.fetchFromLocalDatastore();
                     }catch(ParseException e){
+                        e.printStackTrace();
                         contact.fetchIfNeeded();
                     }
                 }
-
                 ParseObject.pinAll(mContacts);
 
                 //Attempt to sort the contacts list by first name
@@ -274,7 +271,8 @@ public class ContactsScreen extends Activity {
             //Find the updated contact that matches our parameter objectID.
             for(int i=0; i<mContacts.size(); ++i){
                 contact = mContacts.get(i);
-                if(contact == null) return null;
+                Log.e("TAG", "SIZE: " + Integer.toString(i));
+                if(contact.getObjectId() == null) return null;
                 if(contact.getObjectId().equals(params[0])){
                     try{
                         try{
@@ -297,8 +295,7 @@ public class ContactsScreen extends Activity {
 
         @Override
         protected void onPostExecute(Void result){
-            displayList();
-            mContactSpinner.setVisibility(View.GONE);
+            new SortContactsTask().execute(); //Re-sort the contacts under previous sort
         }
     }
 
@@ -490,6 +487,7 @@ public class ContactsScreen extends Activity {
         ParseUser.logOut();
         DroidBook.getInstance().username = "";
         DroidBook.getInstance().user     = null;
+        ParseObject.unpinAllInBackground(mContacts);
         startActivity(new Intent(getApplicationContext(), StartScreen.class));
     }
 
@@ -500,6 +498,7 @@ public class ContactsScreen extends Activity {
      * and can select another address book to be active
      */
     public void returnUserToBooks(MenuItem item){
+        ParseObject.unpinAllInBackground(mContacts);
         this.finish();
     }
 
@@ -608,13 +607,13 @@ public class ContactsScreen extends Activity {
     @Override
     public void onDestroy(){
         super.onDestroy();
-        checkSpinnerStatus();
         DroidBook.getInstance().contactScreenActivity = null;
     }
 
     /*Prevent the user from returning to the splash screen (it is done)*/
     @Override
     public void onBackPressed(){
+        ParseObject.unpinAllInBackground(mContacts);
         super.onBackPressed();
     }
 }

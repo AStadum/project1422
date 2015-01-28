@@ -25,6 +25,7 @@ public class DroidBook {
     public static Activity bookSelectionActivity;
     public static Activity contactEditActivity;
     public static Activity contactCreateActivity;
+    public static Activity resetPasswordActivity;
     public static DroidBook instance;
     public static String username;
     public static ParseUser user;
@@ -57,13 +58,15 @@ public class DroidBook {
         if(contactCreateActivity != null) contactCreateActivity.finish();
         if(bookSelectionActivity != null) bookSelectionActivity.finish();
         if(signupScreenActivity != null) signupScreenActivity.finish();
+        if(resetPasswordActivity != null) resetPasswordActivity.finish();
     }
 
     /**
     * Get and set the current ParseUser for the application.
     */
     public static ParseUser getUser() {
-        return user;
+        ParseUser result = ParseUser.getCurrentUser();
+        return result;
     }
 
     public static void setUser(ParseUser user) {

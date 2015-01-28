@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Vibrator;
@@ -23,7 +24,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.parse.DeleteCallback;
 import com.parse.FindCallback;
 import com.parse.Parse;
 import com.parse.ParseException;
@@ -41,6 +41,8 @@ public class BookSelectionScreen extends Activity {
     private List<AddressBook> mBooks;
     private ProgressBar mProgressBar;
     private Vibrator mVibrator;
+    private SharedPreferences mPrefs;
+    private String mId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +59,9 @@ public class BookSelectionScreen extends Activity {
         //Set the action b/ar's icon to be the logo.
         ActionBar actionBar = getActionBar();
         actionBar.setIcon(R.drawable.ic_logo);
+
+        mPrefs = getApplicationContext().getSharedPreferences("USER", MODE_PRIVATE);
+        mId = mPrefs.getString("USER-ID", "");
 
         //Add some listeners
         addBooksViewListener();
@@ -109,7 +114,7 @@ public class BookSelectionScreen extends Activity {
             if(result.getLeft() == 0){
                 AddressBook newBook = new AddressBook();
                 newBook.setBookName(result.getRight());
-                newBook.setUserID(DroidBook.getInstance().getUser().getObjectId());
+                newBook.setUserID(mId);
                 newBook.initEntries(new ArrayList<Contact>());
                 newBook.saveEventually(); //Important to call this, in order to save data
                 List<AddressBook> book = new ArrayList<AddressBook>();
@@ -145,8 +150,17 @@ public class BookSelectionScreen extends Activity {
 
         @Override
         protected Integer doInBackground(Void... params){
-            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
-            bookQuery.whereEqualTo("userID", DroidBook.getInstance().getUser().getObjectId());
+            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+
+            if(DroidBook.getUser() != null){
+                Log.e(DroidBook.TAG, "user Not Null");
+            }else{
+                Log.e(DroidBook.TAG, "user Null");
+                DroidBook.getInstance().close();
+            }
+
+            bookQuery.whereEqualTo("userID", mId).fromLocalDatastore();
+
             try{
                 return bookQuery.count(); //Query for the number of AddressBook(s) that match user's ID
             }catch(ParseException e){
@@ -161,11 +175,14 @@ public class BookSelectionScreen extends Activity {
 
             //Once count has been checked, we query for the books that DO exist, and populate
             //the ListView with them.
-            if(result == null) Log.e("Null", "Null");
+            if(result == null){
+                createToast("No network connection. Please check your internet access");
+                return;
+            }
             else {
                 ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
 
-                bookQuery.whereEqualTo("userID", DroidBook.getInstance().getUser().getObjectId());
+                bookQuery.whereEqualTo("userID", mId);
                 bookQuery.findInBackground(new FindCallback<AddressBook>() {
 
                     public void done(List<AddressBook> books, ParseException e) {
@@ -224,48 +241,6 @@ public class BookSelectionScreen extends Activity {
     }
 
     /**
-     * Add a listener for when the user performs a "Long Click" to the desired item within
-     * the ListView, and brings up an AlertDialog to allow the user to modify a book.
-     *
-     * Also, a short vibrate is used to let the user know the long click was performed.
-     */
-    public void addBooksViewListener(){
-        mBooksView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                clearActiveBook();
-                mActiveBook = mBooksView.getChildAt(position);
-                if(position == 0) return; //Don't perform action on the header item
-                Intent intent = new Intent(getApplicationContext(), ContactsScreen.class);
-                AddressBook book = mBooks.get(position-1);
-                intent.putExtra("BookId", book.getObjectId());
-                startActivity(intent);
-            }
-        });
-
-        mBooksView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                clearActiveBook();
-                mActiveBook = mBooksView.getChildAt(position);
-                ImageView exitIcon = (ImageView) mActiveBook.findViewById(R.id.exitViewIcon);
-                ImageView editIcon = (ImageView) mActiveBook.findViewById(R.id.editViewIcon);
-                if(exitIcon != null && editIcon != null) {
-                    exitIcon.setVisibility(View.VISIBLE);
-                    editIcon.setVisibility(View.VISIBLE);
-                }
-
-                addExitListener(exitIcon, position);
-                addEditListener(editIcon, position);
-                mVibrator.vibrate(100);
-                return true;
-            }
-        });
-    }
-
-    /**
      * Uses the argument position to map the book we want to remove from our
      * List of AddressBook(s). Remove the book from the List, then remove the book
      * from the database. Update the user with a Toast when finished, and with an
@@ -279,7 +254,7 @@ public class BookSelectionScreen extends Activity {
         List<Contact> contacts = book.getEntries();
         mBooks.remove(position);
 
-        //Delete all the old contacts in the background
+        //Delete all the old contacts in the background (and eventually in case of network issues!)
         Contact contact = null;
         for(int i=0; i<contacts.size(); ++i){
             contact = contacts.get(i);
@@ -292,62 +267,12 @@ public class BookSelectionScreen extends Activity {
         displayBooks();
     }
 
-    /**
-     * Purpose is for if a user performs a "Long Click" on an item within a list view, the remove
-     * icon is added on the far right of the item. When the remove action is clicked, an AlertDialog
-     * is used to confirm if the user truly wishes to remove the book or not.
-     *
-     * @param icon - Remove item icon that is now visible
-     * @param position - Position of the item we want to remove from the database / ListView
-     */
-    public void addExitListener(ImageView icon, final int position){
-        icon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                removeBookDialog(position-1);
-            }
-        });
-    }
-
-    /**
-     * Purpose is for if a user performs a "Long Click" on an item within a list view, the edit
-     * icon is added on the far right of the item. When the edit action is clicked, an AlertDialog
-     * is used to allow the user to modify the Address Book's name
-     *
-     * @param icon - Edit item icon that is now visible
-     * @param position - Position of the item we want to edit
-     */
-    public void addEditListener(ImageView icon, final int position){
-        icon.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                modifyBook(position-1);
-            }
-        });
-    }
-
-    /**
-     * When a user selects logout from the options drop down menu reset
-     * the DroidBook's instance of username / user and return the user to
-     * the start screen.
-     * @param item - the Logout item from the dropdown menu for options
-     */
-    public void logoutUser(MenuItem item){
-        ParseUser.logOut();
-        DroidBook.getInstance().username = "";
-        DroidBook.getInstance().user     = null;
-        startActivity(new Intent(getApplicationContext(), StartScreen.class));
-    }
 
     /**
      * AlertDialog box is created when the user clicks the exit icon. The purpose is
      * intended for asking the user if they are absolutely sure they want to remove the
      * book from the database or not.
-     *
-     * TODO really let the user know all contacts are deleted
-     * TODO also, delete the contact objects associated with this address book when gone
-     *
-     * @param position
+     * @param position - position of the address book we want to potentially remove
      */
     public void removeBookDialog(final int position) {
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -411,6 +336,15 @@ public class BookSelectionScreen extends Activity {
     }
 
 
+
+    /**
+     * Start an async task to try and create a new address book. The task handles if the user has
+     * too many books created, or the name already exists.
+     */
+    public void createBookAndDisplay(String name){
+        new AddBookTask().execute(name);
+    }
+
     /**
      * Modify an existing book the user has long clicked within the ListView. Options are to
      * delete or modify the Address Book.
@@ -471,12 +405,92 @@ public class BookSelectionScreen extends Activity {
     }
 
     /**
-     * Check if a user has already created a book with the same name, if not
-     * we create a new AddressBook object, set the userID to the current user's
-     * and update the display of address books.
+     * Add a listener for when the user performs a "Long Click" to the desired item within
+     * the ListView, and brings up an AlertDialog to allow the user to modify a book.
+     *
+     * Also, a short vibrate is used to let the user know the long click was performed.
      */
-    public void createBookAndDisplay(String name){
-        new AddBookTask().execute(name);
+    public void addBooksViewListener(){
+        mBooksView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                clearActiveBook();
+                mActiveBook = mBooksView.getChildAt(position);
+                if(position == 0) return; //Don't perform action on the header item
+                Intent intent = new Intent(getApplicationContext(), ContactsScreen.class);
+                AddressBook book = mBooks.get(position-1);
+                intent.putExtra("BookId", book.getObjectId());
+                startActivity(intent);
+            }
+        });
+
+        mBooksView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                clearActiveBook();
+                mActiveBook = mBooksView.getChildAt(position);
+                ImageView exitIcon = (ImageView) mActiveBook.findViewById(R.id.exitViewIcon);
+                ImageView editIcon = (ImageView) mActiveBook.findViewById(R.id.editViewIcon);
+                if(exitIcon != null && editIcon != null) {
+                    exitIcon.setVisibility(View.VISIBLE);
+                    editIcon.setVisibility(View.VISIBLE);
+                }
+
+                addExitListener(exitIcon, position);
+                addEditListener(editIcon, position);
+                mVibrator.vibrate(100);
+                return true;
+            }
+        });
+    }
+
+    /**
+     * Purpose is for if a user performs a "Long Click" on an item within a list view, the remove
+     * icon is added on the far right of the item. When the remove action is clicked, an AlertDialog
+     * is used to confirm if the user truly wishes to remove the book or not.
+     *
+     * @param icon - Remove item icon that is now visible
+     * @param position - Position of the item we want to remove from the database / ListView
+     */
+    public void addExitListener(ImageView icon, final int position){
+        icon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                removeBookDialog(position-1);
+            }
+        });
+    }
+
+    /**
+     * Purpose is for if a user performs a "Long Click" on an item within a list view, the edit
+     * icon is added on the far right of the item. When the edit action is clicked, an AlertDialog
+     * is used to allow the user to modify the Address Book's name
+     *
+     * @param icon - Edit item icon that is now visible
+     * @param position - Position of the item we want to edit
+     */
+    public void addEditListener(ImageView icon, final int position){
+        icon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                modifyBook(position-1);
+            }
+        });
+    }
+
+    /**
+     * When a user selects logout from the options drop down menu reset
+     * the DroidBook's instance of username / user and return the user to
+     * the start screen.
+     * @param item - the Logout item from the dropdown menu for options
+     */
+    public void logoutUser(MenuItem item){
+        ParseUser.logOut();
+        DroidBook.getInstance().username = "";
+        DroidBook.getInstance().user     = null;
+        startActivity(new Intent(getApplicationContext(), StartScreen.class));
     }
 
     /**
@@ -523,13 +537,13 @@ public class BookSelectionScreen extends Activity {
     public void onDestroy(){
         super.onDestroy();
         DroidBook.getInstance().bookSelectionActivity = null;
-        DroidBook.getInstance().close();
     }
 
     @Override
     public void onResume(){
         super.onResume();
     }
+
 
     /*Prevent the user from returning to the splash screen (it is done)*/
     @Override
