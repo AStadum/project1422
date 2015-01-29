@@ -9,6 +9,9 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.parse.Parse;
+import com.parse.ParseObject;
+
 import java.util.List;
 
 /**
@@ -25,6 +28,13 @@ public class BookAdapter extends ArrayAdapter<AddressBook> {
         mContext  = context;
         mLayoutId = layoutId;
         mData     = data;
+        initParse();
+    }
+
+    public void initParse(){
+        ParseObject.registerSubclass(AddressBook.class);
+        ParseObject.registerSubclass(Contact.class);
+        Parse.initialize(mContext, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
     }
 
     @Override
@@ -54,9 +64,17 @@ public class BookAdapter extends ArrayAdapter<AddressBook> {
         private ImageView mExitIcon;
         private TextView mNameView;
 
+
         public BookHolder(ImageView icon, TextView name){
             mExitIcon = icon;
             mNameView = name;
+            initParse();
+        }
+
+        public void initParse(){
+            ParseObject.registerSubclass(AddressBook.class);
+            ParseObject.registerSubclass(Contact.class);
+            Parse.initialize(mContext, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
         }
 
         public ImageView getmExitIcon() {

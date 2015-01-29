@@ -149,7 +149,7 @@ public class BookSelectionScreen extends Activity {
 
         @Override
         protected Integer doInBackground(Void... params){
-            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
 
             if(DroidBook.getUser() != null){
                 Log.e(DroidBook.TAG, "user Not Null");

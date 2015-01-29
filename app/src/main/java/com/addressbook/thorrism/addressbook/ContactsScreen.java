@@ -546,7 +546,6 @@ public class ContactsScreen extends Activity {
         mBook.saveEventually();
 
         contact.deleteInBackground(new DeleteCallback() {
-
             @Override
             public void done(ParseException e) {
                 if(e==null){

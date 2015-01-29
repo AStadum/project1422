@@ -33,7 +33,6 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         this.context    = context;
         this.listHeaders = listHeader;
         this.listData   = listData;
-        initParse();
     }
 
     /**
