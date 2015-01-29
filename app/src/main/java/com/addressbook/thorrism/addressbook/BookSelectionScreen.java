@@ -222,9 +222,6 @@ public class BookSelectionScreen extends Activity {
                 e.printStackTrace();
                 createToast("Failed to find any books in the database.");
             }
-
-
-
             return null;
         }
 

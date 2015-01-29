@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,6 +13,9 @@ import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.parse.Parse;
+import com.parse.ParseObject;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +33,7 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         this.context    = context;
         this.listHeaders = listHeader;
         this.listData   = listData;
+        initParse();
     }
 
     /**
@@ -40,6 +45,12 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
     @Override
     public Object getChild(int groupPosition, int childPosition) {
         return this.listData.get(this.listHeaders.get(groupPosition));
+    }
+
+    public void initParse(){
+        ParseObject.registerSubclass(AddressBook.class);
+        ParseObject.registerSubclass(Contact.class);
+        Parse.initialize(context, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
     }
 
     /**
@@ -114,6 +125,10 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
         phoneIcon.setVisibility(View.GONE);
         textIcon.setVisibility(View.GONE);
         mapIcon.setVisibility(View.GONE);
+
+        if(contact == null) Log.e("Null", "null");
+
+        if(contact.getFirstName() == null) Log.e("Null", "null");
 
         //Set the values for the views from the contacts from their information. Lots of input
         //checking done below to ensure we only add fields if we need it. (includes visibility on/off too)

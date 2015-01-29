@@ -457,8 +457,13 @@ public class ContactsScreen extends Activity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(contactViewOptions);
 
+        String name = contact.getFirstName();
+        if(contact.getLastName() != null && !contact.getLastName().equals("")){
+            name += " " + contact.getLastName();
+        }
+
         builder.setCancelable(true)
-                .setTitle(contact.getFirstName() + " " + contact.getLastName());
+                .setTitle(name);
 
         //Set the icon for the dialog window to the app's icon
         builder.setIcon(R.drawable.ic_launcher);
