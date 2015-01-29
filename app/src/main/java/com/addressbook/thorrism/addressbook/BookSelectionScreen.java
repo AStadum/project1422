@@ -78,7 +78,6 @@ public class BookSelectionScreen extends Activity {
      * the classes, or ParseObjects used, are registered for use.
      */
     public void initParse(){
-        Parse.enableLocalDatastore(this);
         ParseObject.registerSubclass(AddressBook.class);
         ParseObject.registerSubclass(Contact.class);
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12" );

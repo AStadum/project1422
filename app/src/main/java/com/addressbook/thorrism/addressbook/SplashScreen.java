@@ -22,6 +22,7 @@ public class SplashScreen extends Activity {
         started = false;
         ended   = false;
 
+        Parse.enableLocalDatastore(this);
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
         new LoadTask().execute();
     }
