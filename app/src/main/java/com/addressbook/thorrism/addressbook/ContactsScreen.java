@@ -283,6 +283,73 @@ public class ContactsScreen extends Activity {
         }
     }
 
+    private class RefreshTask extends AsyncTask<Void, Void, Void>{
+
+        @Override
+        protected void onPreExecute(){
+            mContactSpinner.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params){
+            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+            bookQuery.whereEqualTo("objectId", mBookId);
+
+            try{
+
+                List<AddressBook> books = bookQuery.find();
+                if(books.get(0) != null){
+                    mBook = books.get(0);
+                    mContacts = mBook.getEntries();
+                    mContactHeaders.clear();
+                    mContactData.clear();
+
+                    //Fetch the contacts, must do to have a value for the contact
+                    for(Contact contact: mContacts){
+                        contact.fetchIfNeededInBackground();
+                    }
+
+
+                    //Attempt to sort the contacts list by first name
+                    Collections.sort(mContacts, mComparator);
+                    mBook.setEntries(mContacts);
+
+                    //For each contact, add their names to a new header
+                    Contact contact;
+                    for(int i=0; i<mContacts.size(); ++i){
+                        contact = mContacts.get(i);
+                        if(contact == null) {
+                            Log.e(DroidBook.TAG, "*****NULL****");
+                        }else {
+                            mContactHeaders.add(contact.getFirstName() + " " + contact.getLastName());
+                            mContactData.put(mContactHeaders.get(mContactData.size()), contact);
+                        }
+                    }
+                }
+            }catch(ParseException e){
+                e.printStackTrace();
+                Log.e("Failed", "Could not update");
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result){
+            if(mAdapter != null)
+                mAdapter.notifyDataSetChanged();
+            else
+                displayList();
+
+            try{
+                ParseObject.pinAll(mContacts);
+            }catch(ParseException e){
+                e.printStackTrace();
+            }
+
+            mContactSpinner.setVisibility(View.GONE);
+        }
+    }
+
     /**
      * Create a new custom adapter for our ExpandableListView and populate the adapter with
      * our contacts and headers containing the contact's names.
@@ -568,6 +635,10 @@ public class ContactsScreen extends Activity {
             setComparator(0);
             new SortContactsTask().execute();
         }
+    }
+
+    public void refreshContacts(MenuItem i){
+        new RefreshTask().execute();
     }
 
     @Override

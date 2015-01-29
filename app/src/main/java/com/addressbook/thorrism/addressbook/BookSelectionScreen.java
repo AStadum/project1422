@@ -68,9 +68,6 @@ public class BookSelectionScreen extends Activity {
 
         //Initialize Parse and the ListView fpr the Address Books
         initParse();
-        mBooks = new ArrayList<AddressBook>();
-        displayBooks();
-        new QueryBooksTask().execute();
     }
 
     /**
@@ -81,6 +78,9 @@ public class BookSelectionScreen extends Activity {
         ParseObject.registerSubclass(AddressBook.class);
         ParseObject.registerSubclass(Contact.class);
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12" );
+        mBooks = new ArrayList<AddressBook>();
+        displayBooks();
+        new QueryBooksTask().execute();
     }
 
     /**
@@ -196,6 +196,42 @@ public class BookSelectionScreen extends Activity {
                 });
             }
             mProgressBar.setVisibility(View.GONE);
+        }
+    }
+
+    private class RefreshTask extends AsyncTask<Void, Void, Void>{
+
+        @Override
+        protected void onPreExecute(){
+            mProgressBar.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected Void doInBackground(Void... params){
+            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+            List<AddressBook> books;
+            bookQuery.whereEqualTo("userID", mId);
+
+            try{
+                books = bookQuery.find();
+                if(books.size() != 0 && books != null){
+                    mBooks = books;
+                    ParseObject.pinAll(mBooks);
+                }
+            }catch(ParseException e){
+                e.printStackTrace();
+                createToast("Failed to find any books in the database.");
+            }
+
+
+
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void result){
+            mProgressBar.setVisibility(View.GONE);
+            displayBooks();
         }
     }
 
@@ -490,6 +526,10 @@ public class BookSelectionScreen extends Activity {
         DroidBook.getInstance().username = "";
         DroidBook.getInstance().user     = null;
         startActivity(new Intent(getApplicationContext(), StartScreen.class));
+    }
+
+    public void refreshBooks(MenuItem i){
+        new RefreshTask().execute();
     }
 
     /**

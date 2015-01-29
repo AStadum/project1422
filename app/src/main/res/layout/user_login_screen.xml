@@ -90,12 +90,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@+id/login_password"
-                android:paddingTop="10dp"
                 android:layout_centerHorizontal="true"
                 android:text="@string/forgot_password"
                 android:textColor="#00BFFF"
                 android:textSize="12sp"
                 android:padding="10dp"
+                android:paddingTop="15dp"
+                android:layout_marginTop="10dp"
                 android:textStyle="bold"
                 />
         </RelativeLayout>

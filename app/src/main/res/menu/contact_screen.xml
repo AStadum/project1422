@@ -37,6 +37,13 @@
                 android:title="@string/logout_user"
                 android:onClick="logoutUser">
             </item>
+
+            <item
+                android:id="@+id/refreshBtn"
+                android:title="Refresh"
+                android:onClick="refreshContacts">
+            </item>
+
         </menu>
     </item>
 
