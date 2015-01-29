@@ -8,7 +8,6 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:id="@+id/contactsExpandableView"
-        android:fastScrollAlwaysVisible="true"
         android:fastScrollEnabled="true"
         android:visibility="visible"/>
 
