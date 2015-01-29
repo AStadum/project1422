@@ -1,6 +1,8 @@
 package com.addressbook.thorrism.addressbook;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.KeyEvent;
@@ -92,7 +94,7 @@ public class SignupScreen extends Activity {
 
         // Check for a valid password, if the user entered one.
         if (!TextUtils.isEmpty(password)) {
-            if(isPasswordValid(password)==0) {
+            if(isPasswordValid(password) ==0) {
                 mPasswordView.setError(getString(R.string.error_invalid_password1));
                 focusView = mPasswordView;
                 cancel = true;
@@ -136,7 +138,7 @@ public class SignupScreen extends Activity {
             // form field with an error.
             focusView.requestFocus();
         } else {
-            ParseUser user = new ParseUser();
+            final ParseUser user = new ParseUser();
             user.setUsername(name);
             user.setPassword(password);
             user.setEmail(email);
@@ -150,7 +152,7 @@ public class SignupScreen extends Activity {
 
                     //Signup was a success
                     if (e == null) {
-                        showProgress(true);
+                        showProgress(true, user);
                     }
 
                     //Something was wrong with the information submit
@@ -201,22 +203,18 @@ public class SignupScreen extends Activity {
     }
 
     private boolean isNameValid(String name) {
-        Pattern p = Pattern.compile("[^a-zA-Z]");
-        Matcher m = p.matcher(name);
-        boolean b = m.find();
-
-        if (!b)
-            return false;
-        
-        return name.length() >= 4;
+        return (name.length() >= 4);
     }
 
     /**
-     * Shows the progress UI and hides the login form.
+     * Shows the progress UI and hides the login form. Also starts the
      */
-    public void showProgress(final boolean show) {
+    public void showProgress(final boolean show, ParseUser user) {
         mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
         mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        SharedPreferences prefs = getApplicationContext().getSharedPreferences("USER", MODE_PRIVATE);
+        prefs.edit().putString("USER-ID", user.getObjectId()).apply();
+        startActivity(new Intent(this, BookSelectionScreen.class));
     }
 
     /*Add some functionality to the android lifecycle. Deal with adding these screens to the app*/
