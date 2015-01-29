@@ -16,7 +16,7 @@ public class StartScreen extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.start_screen);
-        
+
         //Acquire buttons for signup / login, and add listeners for them.
         mSignupBtn = (Button) findViewById(R.id.signupBtn);
         mLoginBtn  = (Button) findViewById(R.id.loginBtn);

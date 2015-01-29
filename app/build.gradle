@@ -1,9 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        config {
+            keyAlias 'thorrism'
+            keyPassword 'Sacul456!!'
+            storeFile file('C:/Users/Lucas Crawford/droidbook-key.jks')
+            storePassword 'Sacul456!!'
+        }
+    }
     compileSdkVersion 21
     buildToolsVersion "21.1.2"
-
     defaultConfig {
         applicationId "com.addressbook.thorrism.addressbook"
         minSdkVersion 15

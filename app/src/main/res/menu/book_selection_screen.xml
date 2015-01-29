@@ -15,15 +15,14 @@
         android:title="@string/action_settings">
         <menu>
             <item
+                android:id="@+id/refreshBtn"
+                android:title="@string/sync_data"
+                android:onClick="refreshBooks">
+            </item>
+            <item
                 android:id="@+id/logoutBtn"
                 android:title="@string/logout_user"
                 android:onClick="logoutUser">
-            </item>
-
-            <item
-                android:id="@+id/refreshBtn"
-                android:title="Refresh"
-                android:onClick="refreshBooks">
             </item>
         </menu>
     </item>

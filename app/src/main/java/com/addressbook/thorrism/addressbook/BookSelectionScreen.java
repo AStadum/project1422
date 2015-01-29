@@ -75,6 +75,7 @@ public class BookSelectionScreen extends Activity {
      * the classes, or ParseObjects used, are registered for use.
      */
     public void initParse(){
+        Parse.enableLocalDatastore(this);
         ParseObject.registerSubclass(AddressBook.class);
         ParseObject.registerSubclass(Contact.class);
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12" );
@@ -158,7 +159,7 @@ public class BookSelectionScreen extends Activity {
                 DroidBook.getInstance().close();
             }
 
-            bookQuery.whereEqualTo("userID", mId).fromLocalDatastore();
+            bookQuery.whereEqualTo("userID", mId);
 
             try{
                 return bookQuery.count(); //Query for the number of AddressBook(s) that match user's ID
@@ -187,7 +188,7 @@ public class BookSelectionScreen extends Activity {
                     public void done(List<AddressBook> books, ParseException e) {
                         if (e == null) {
                             mBooks = books;
-                            ParseObject.pinAllInBackground(books);
+                            ParseObject.pinAllInBackground(mBooks);
                             displayBooks();
                         } else {
                             e.printStackTrace();
@@ -295,6 +296,7 @@ public class BookSelectionScreen extends Activity {
         }
         book.deleteEventually();
 
+
         //Update the display to show book removed
         displayBooks();
     }
@@ -308,9 +310,7 @@ public class BookSelectionScreen extends Activity {
      */
     public void removeBookDialog(final int position) {
         LayoutInflater inflater = LayoutInflater.from(this);
-
         final View modifyBookView = inflater.inflate(R.layout.remove_book, null);
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(modifyBookView);
 

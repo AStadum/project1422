@@ -41,6 +41,7 @@
     <string name="remove_contact_message">Are you sure? Deleting a contact is permanent.</string>
     <string name="remove_book_message">Are you sure? Deleting an address book is permanent. All contacts will be lost!</string>
     <string name="sort_zip">Sort by ZIP code</string>
-    <string name="sort_last">Sort by Name</string>
+    <string name="sync_data">Sync data</string>
+    <string name="sort_last">Sort by last name</string>
 
 </resources>

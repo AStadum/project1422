@@ -80,11 +80,11 @@ public class CreateContactScreen extends Activity {
         addFocusListener(mEmailEdit);
         addFocusListener(mNumberEdit);
 
-       //Add listeners to the buttons
+        //Add listeners to the buttons
         addButtonListeners();
 
-       //Retrieve from the extras passed from last activity the book we are operating on
-       fetchBook(getIntent().getExtras().getString("BookId"));
+        //Retrieve from the extras passed from last activity the book we are operating on
+        fetchBook(getIntent().getExtras().getString("BookId"));
     }
 
     public void addFocusListener(EditText v){
@@ -205,30 +205,9 @@ public class CreateContactScreen extends Activity {
      * @return the output from capitalizing the first letter
      */
     public String capitalizeFirstLetter(String s){
-        List<String> words = new ArrayList<String>();
-        String current = "";
-        for(char c : s.toCharArray()){
-            if(c == ' '){
-                words.add(current);
-                current = "";
-            }
-            else current += c;
-        }
-        words.add(current);
-
-        String result = "";
-        if(words.size() > 1) { //If # of words found exceed more than one
-            for (String word : words) {
-                String tmp = word.substring(1, word.length());
-                String tmp2 = Character.toString(word.charAt(0)).toUpperCase();
-                result += tmp2 + tmp + ' ';
-            }
-        }else {                //Otherwise, just return the string with modified first letter
-            String tmp = s.substring(1, s.length());
-            String tmp2 = Character.toString(s.charAt(0)).toUpperCase();
-            result += tmp2 + tmp + ' ';
-        }
-        return result.substring(0, result.length()-1);
+        String tmp = s.substring(1, s.length());
+        String tmp2 = Character.toString(s.charAt(0)).toUpperCase();
+        return tmp2 + tmp;
     }
 
     /**
