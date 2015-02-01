@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.parse.ParseUser;
 
@@ -79,7 +80,7 @@ public class DroidBook {
     public static boolean checkNetworkStatus(Context ctx){
         ConnectivityManager manager = (ConnectivityManager) ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo info = manager.getActiveNetworkInfo();
-        if(info.isRoaming()) Log.e(TAG, "Roaming");
+        if(info.isRoaming()) return false;
         if(info.isFailover()) Log.e(TAG, "Failover");
         if(info.isAvailable()) Log.e(TAG, "Available");
         if(info.isConnected()) Log.e(TAG, "Connected");
@@ -100,5 +101,12 @@ public class DroidBook {
     public static void setFontRoboto(TextView view, Context ctx){
         Typeface tf = Typeface.createFromAsset(ctx.getAssets(), "roboto.ttf");
         view.setTypeface(tf);
+    }
+
+    /**
+     * Create toast for an activity based on the context
+     */
+    public void createToast(String s, Context ctx){
+        Toast.makeText(ctx, s, Toast.LENGTH_LONG).show();
     }
 }

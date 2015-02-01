@@ -7,6 +7,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -18,6 +19,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.parse.Parse;
 import com.parse.ParseException;
@@ -34,6 +36,7 @@ public class LoginScreen extends Activity {
     private TextView mErrorPasswordView;
     private TextView mForgotPasswordView;
     private Button   mLoginBtn;
+    private SharedPreferences mPrefs;
     private ProgressBar mProgressBar;
     private boolean  displayBtn;
 
@@ -50,6 +53,7 @@ public class LoginScreen extends Activity {
         mForgotPasswordView = (TextView) findViewById(R.id.forgot_password);
         mLoginBtn           = (Button) findViewById(R.id.login_button);
         mProgressBar        = (ProgressBar) findViewById(R.id.loginSpinner);
+        mPrefs              = getApplicationContext().getSharedPreferences("USER", MODE_PRIVATE);
         displayBtn          = false;
 
         //Add listeners for the password input and login button
@@ -59,6 +63,7 @@ public class LoginScreen extends Activity {
         //Initialize the parse database
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
     }
+
 
    /*Reset inputs if they have been altered by in either the username or password EditText*/
    public void resetInputs(){
@@ -169,9 +174,12 @@ public class LoginScreen extends Activity {
 
     /*Async thread to check if a username entered by the user exists in the Parse user database*/
     public class CheckUsername extends AsyncTask<String, Void, Boolean>{
+        private boolean started = false;
 
         @Override
         protected void onPreExecute(){
+            started = true;
+            performCountdown(this);
             mLoginBtn.setText("");
             mProgressBar.setVisibility(View.VISIBLE);
         }
@@ -184,6 +192,7 @@ public class LoginScreen extends Activity {
             try{
                 result = query.find();
             }catch(ParseException e){
+                e.printStackTrace();
                 if(e == null){
                     //do something here I guess
                 }
@@ -197,6 +206,8 @@ public class LoginScreen extends Activity {
 
         @Override
         protected void onPostExecute(Boolean result){
+            started = false;
+
             //Found username entered by the user, attempt login with password now.
             if(result) {
                 new LoginUser().execute();
@@ -233,14 +244,34 @@ public class LoginScreen extends Activity {
             }
 
         }
+
+        public boolean isStarted(){
+            return started;
+        }
+
+        @Override
+        protected void onCancelled(){
+            handleCancelled();
+        }
+
+        @Override
+        protected void onCancelled(Boolean result){
+            handleCancelled();
+        }
+
+        private void handleCancelled(){
+            createToast("Please check you connection and try again.");
+        }
     }
 
     /*Async thread to attempt a user login using Parse. This happens upon user entering a valid username*/
     public class LoginUser extends AsyncTask<Void, Void, Boolean>{
+        private boolean started = false;
 
         @Override
         protected void onPreExecute(){
-
+            started = true;
+            performCountdown(this);
         }
 
         @Override
@@ -261,10 +292,12 @@ public class LoginScreen extends Activity {
 
         @Override
         protected void onPostExecute(Boolean result){
+            started = false;
 
             //Login was successful, start the app on address book screen.
             if(result){
                 ParseUser user = ParseUser.getCurrentUser();
+                mPrefs.edit().putString("USER-ID", user.getObjectId()).apply();
                 DroidBook.username = mUserView.getText().toString();
                 DroidBook.getInstance().setUser(user);
 
@@ -307,6 +340,75 @@ public class LoginScreen extends Activity {
                 mProgressBar.setVisibility(View.INVISIBLE);
             }
         }
+
+        public boolean isStarted(){
+            return started;
+        }
+
+    }
+
+    /**
+     * Perform a timer that is used to determine if a network connection is taking too long
+     */
+    public void performCountdown(final CheckUsername task){
+        if(!DroidBook.checkNetworkStatus(getApplicationContext())){
+            task.cancel(true);
+            mProgressBar.setVisibility(View.INVISIBLE);
+            mLoginBtn.setText(getString(R.string.login_user));
+            mLoginBtn.setVisibility(View.INVISIBLE);
+            createToast("Please check your connection and try again.");
+        }
+
+        final Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if(task.isStarted() && !task.isCancelled()) {
+                    task.cancel(true);
+                    mProgressBar.setVisibility(View.INVISIBLE);
+                    mLoginBtn.setText(getString(R.string.login_user));
+                    mLoginBtn.setVisibility(View.INVISIBLE);
+                    createToast("Please check your connection and try again.");
+                }
+            }
+
+
+        };
+        handler.postDelayed(runnable, 5000);
+    }
+
+    /**
+     * Perform a timer that is used to determine if a network connection is taking too long
+     */
+    public void performCountdown(final LoginUser task){
+        if(!DroidBook.checkNetworkStatus(getApplicationContext())){
+            task.cancel(true);
+            mProgressBar.setVisibility(View.INVISIBLE);
+            mLoginBtn.setText(getString(R.string.login_user));
+            mLoginBtn.setVisibility(View.INVISIBLE);
+            createToast("Please check your connection and try again.");
+        }
+
+        final Handler handler = new Handler();
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                if(task.isStarted() && !task.isCancelled()) {
+                    task.cancel(true);
+                    mProgressBar.setVisibility(View.INVISIBLE);
+                    mLoginBtn.setText(getString(R.string.login_user));
+                    mLoginBtn.setVisibility(View.INVISIBLE);
+                    createToast("Please check your connection and try again.");
+                }
+            }
+
+
+        };
+        handler.postDelayed(runnable, 5000);
+    }
+
+    public void createToast(String s){
+        Toast.makeText(getApplicationContext(), s, Toast.LENGTH_LONG).show();
     }
 
     /*Add some functionality to the android lifecycle. Deal with adding these screens to the app*/

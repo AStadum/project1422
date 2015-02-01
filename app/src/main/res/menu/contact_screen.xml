@@ -15,6 +15,12 @@
         android:title="@string/action_settings">
         <menu>
             <item
+                android:id="@+id/sortByFirst"
+                android:title="@string/sort_first"
+                android:onClick="sortByFirst">
+            </item>
+
+            <item
                 android:id="@+id/sortByLast"
                 android:title="@string/sort_last"
                 android:onClick="sortByLast">
@@ -27,21 +33,15 @@
             </item>
 
             <item
-                android:id="@+id/returnBtn"
-                android:title="@string/return_to_books"
-                android:onClick="returnUserToBooks">
-            </item>
-
-            <item
                 android:id="@+id/refreshBtn"
                 android:title="@string/sync_data"
                 android:onClick="refreshContacts">
             </item>
 
             <item
-                android:id="@+id/logoutBtn"
-                android:title="@string/logout_user"
-                android:onClick="logoutUser">
+                android:id="@+id/returnBtn"
+                android:title="@string/return_to_books"
+                android:onClick="returnUserToBooks">
             </item>
 
         </menu>

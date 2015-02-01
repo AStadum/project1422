@@ -26,6 +26,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Eugene, Oregon 97068"
+        android:layout_marginBottom="15dp"
         android:textSize="20sp"/>
 
     <TextView
@@ -41,6 +42,7 @@
         android:layout_below="@+id/contactEmail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:paddingBottom="10dp"
         android:text="(503) 752-1246"
         android:textSize="20sp"/>
 

@@ -16,5 +16,6 @@
 #   public *;
 #}
 
+
 -keep class com.parse.* { *; }
 -dontwarn com.parse.**

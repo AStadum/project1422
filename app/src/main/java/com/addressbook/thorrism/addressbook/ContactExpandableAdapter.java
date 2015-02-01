@@ -156,6 +156,10 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
             mapIcon.setVisibility(View.VISIBLE);
         }
 
+        if(contact.getCity().equals("") && contact.getState().equals("") && contact.getZipcode().equals("")) {
+            contactCityStateZip.setVisibility(View.GONE);
+        }
+
         if(contact.getCity().equals("") && contact.getState().equals(""))
             contactCityStateZip.setText(contact.getZipcode());
 

@@ -63,11 +63,11 @@ public class BookSelectionScreen extends Activity {
         mPrefs = getApplicationContext().getSharedPreferences("USER", MODE_PRIVATE);
         mId = mPrefs.getString("USER-ID", "");
 
-        //Add some listeners
-        addBooksViewListener();
-
         //Initialize Parse and the ListView fpr the Address Books
         initParse();
+
+        //Add some listeners
+        addBooksViewListener();
     }
 
     /**
@@ -75,13 +75,21 @@ public class BookSelectionScreen extends Activity {
      * the classes, or ParseObjects used, are registered for use.
      */
     public void initParse(){
-        Parse.enableLocalDatastore(this);
+        try{
+            Parse.enableLocalDatastore(this);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+
         ParseObject.registerSubclass(AddressBook.class);
         ParseObject.registerSubclass(Contact.class);
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12" );
         mBooks = new ArrayList<AddressBook>();
+
         displayBooks();
-        new QueryBooksTask().execute();
+        if(!mPrefs.getString("FETCHED", "").equals("DONE")){
+            new QueryBooksTask().execute();
+        }
     }
 
     /**
@@ -123,13 +131,14 @@ public class BookSelectionScreen extends Activity {
                     ParseObject.pinAll(book);
                 }catch(ParseException e){
                     e.printStackTrace();
-                    Log.e(DroidBook.TAG, "Failed to pink!");
+                    Log.e(DroidBook.TAG, "Failed to pin!");
                 }
                 mBooks.add(newBook);
                 displayBooks();
             }
             else
                 createToast("An Address Book with that name already exists!");
+            mProgressBar.setVisibility(View.GONE);
             mProgressBar.setVisibility(View.GONE);
         }
     }
@@ -150,21 +159,27 @@ public class BookSelectionScreen extends Activity {
 
         @Override
         protected Integer doInBackground(Void... params){
-            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
+            try {
+                ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
 
-            if(DroidBook.getUser() != null){
-                Log.e(DroidBook.TAG, "user Not Null");
-            }else{
-                Log.e(DroidBook.TAG, "user Null");
-                DroidBook.getInstance().close();
-            }
+                if (DroidBook.getUser() != null) {
+                    Log.e(DroidBook.TAG, "user Not Null");
+                } else {
+                    Log.e(DroidBook.TAG, "user Null");
+                    DroidBook.getInstance().close();
+                }
 
-            bookQuery.whereEqualTo("userID", mId);
+                bookQuery.whereEqualTo("userID", mId);
 
-            try{
-                return bookQuery.count(); //Query for the number of AddressBook(s) that match user's ID
-            }catch(ParseException e){
+                try {
+                    return bookQuery.count(); //Query for the number of AddressBook(s) that match user's ID
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }catch(Exception e){
                 e.printStackTrace();
+                Log.e(DroidBook.TAG, "Failed to query user.");
                 return null;
             }
         }
@@ -196,6 +211,7 @@ public class BookSelectionScreen extends Activity {
                     }
                 });
             }
+            mPrefs.edit().putString("FETCHED", "DONE").apply();
             mProgressBar.setVisibility(View.GONE);
         }
     }
@@ -205,6 +221,7 @@ public class BookSelectionScreen extends Activity {
         @Override
         protected void onPreExecute(){
             mProgressBar.setVisibility(View.VISIBLE);
+            mEmptyView.setVisibility(View.GONE);
         }
 
         @Override
@@ -217,7 +234,7 @@ public class BookSelectionScreen extends Activity {
                 books = bookQuery.find();
                 if(books.size() != 0 && books != null){
                     mBooks = books;
-                    ParseObject.pinAll(mBooks);
+                    ParseObject.pinAllInBackground(mBooks);
                 }
             }catch(ParseException e){
                 e.printStackTrace();
@@ -229,6 +246,7 @@ public class BookSelectionScreen extends Activity {
         @Override
         protected void onPostExecute(Void result){
             mProgressBar.setVisibility(View.GONE);
+            mPrefs.edit().putString("FETCHED", "DONE").apply();
             displayBooks();
         }
     }
@@ -270,7 +288,6 @@ public class BookSelectionScreen extends Activity {
             exitIcon.setVisibility(View.GONE);
             editIcon.setVisibility(View.GONE);
         }
-
     }
 
     /**
@@ -291,11 +308,16 @@ public class BookSelectionScreen extends Activity {
         Contact contact = null;
         for(int i=0; i<contacts.size(); ++i){
             contact = contacts.get(i);
-            contact.fetchIfNeededInBackground();
+            try{
+                contact.fetchFromLocalDatastore();
+            }catch(ParseException e){
+                e.printStackTrace();
+                Log.e(DroidBook.TAG, "Failed to fetch");
+                contact.fetchIfNeededInBackground();
+            }
             contact.deleteEventually();
         }
         book.deleteEventually();
-
 
         //Update the display to show book removed
         displayBooks();

@@ -239,26 +239,45 @@ public class CreateContactScreen extends Activity {
         String zip = mZipcodeEdit.getText().toString();
 
         //Do input checking on the zip code. Make sure the user submits a valid one
-        if(!checkZipInput(zip)){
+        if(!checkZipInput(zip) && !zip.equals("")){
             createToast("Please enter a valid zipcode!");
             return null;
         }
-        else
-            contact.setZipcode(zip);
+        else {
+            if(zip.length() != 0)
+                contact.setZipcode(zip);
+            else
+                contact.setZipcode("");
+        }
 
         //Only set the values if there is input
-        if(mStateEdit.getText().toString().length() != 0)
-            contact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
-        else
-            contact.setState("");
-        if(mCityEdit.getText().toString().length() != 0)
-            contact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
-        else
-            contact.setCity("");
-        if(mAddressEdit.getText().toString().length() != 0)
+        boolean addressExists = false;
+        if(mAddressEdit.getText().toString().length() != 0) {
+            addressExists = true;
             contact.setAddress(capitalizeFirstLetter(mAddressEdit.getText().toString()));
+        }
         else
             contact.setAddress("");
+
+        if(mStateEdit.getText().toString().length() != 0)
+            contact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
+        else {
+            contact.setState("");
+            if(addressExists){
+                createToast("Please enter a city and state for this address");
+                return null;
+            }
+        }
+        if(mCityEdit.getText().toString().length() != 0)
+            contact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
+        else {
+            contact.setCity("");
+            if(addressExists){
+                createToast("Please enter a city and state for this address");
+                return null;
+            }
+        }
+
         if(mEmailEdit.getText().toString().length() != 0)
             contact.setEmail(mEmailEdit.getText().toString());
         else

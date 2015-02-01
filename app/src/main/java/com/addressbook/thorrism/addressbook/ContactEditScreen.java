@@ -139,7 +139,26 @@ public class ContactEditScreen extends Activity {
         mAddBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveContact();
+                Contact result = saveContact();
+
+                //If the contact is not null, save it with result contacts data
+                if(result != null) {
+                    mContact.setFirstName(result.getFirstName());
+                    mContact.setLastName(result.getLastName());
+                    mContact.setZipcode(result.getZipcode());
+                    mContact.setEmail(result.getEmail());
+                    mContact.setNumber(result.getNumber());
+                    mContact.setAddress(result.getAddress());
+                    mContact.setCity(result.getCity());
+                    mContact.setState(result.getState());
+                    mContact.setExtras(result.getExtras());
+                    mContact.saveEventually();
+                    SharedPreferences prefs = getApplicationContext().getSharedPreferences("ADD_STATE", MODE_PRIVATE);
+                    prefs.edit().putString("STATE", "MODIFIED").apply();
+                    prefs.edit().putString("CONTACT", mContact.getObjectId()).apply();
+                    createToast("Saved contact changes.");
+                    mActivity.finish();
+                }
             }
         });
 
@@ -379,62 +398,76 @@ public class ContactEditScreen extends Activity {
      * Check the EditText input fields to see if a user has input valid data. If so, save
      * the contact and return to the contact screen.
      */
-    public void saveContact(){
+    public Contact saveContact(){
+        Contact contact = new Contact();
 
-        //Add a new extra to the contact field
-         mContact.setExtras(mExtraList);
+        //Add a new extra to the contact field and the object id
+        contact.setExtras(mExtraList);
 
         if(mFirstNameEdit.getText().toString().length() != 0)
-            mContact.setFirstName(capitalizeFirstLetter(mFirstNameEdit.getText().toString()));
+            contact.setFirstName(capitalizeFirstLetter(mFirstNameEdit.getText().toString()));
         else {
             createToast("Please enter a first name!");
-            return;
+            return null;
         }
 
         if(mLastNameEdit.getText().toString().length() != 0)
-            mContact.setLastName(capitalizeFirstLetter(mLastNameEdit.getText().toString()));
+            contact.setLastName(capitalizeFirstLetter(mLastNameEdit.getText().toString()));
         else
-            mContact.setLastName("");
+            contact.setLastName("");
 
         String zip = mZipcodeEdit.getText().toString();
 
         //Do input checking on the zip code. Make sure the user submits a valid one
-        if(!checkZipInput(zip)){
+        if(!checkZipInput(zip) && !zip.equals("")){
             createToast("Please enter a valid zipcode!");
-            return;
+            return null;
         }
-        else
-            mContact.setZipcode(zip);
+        else {
+            if(zip.length() != 0)
+                contact.setZipcode(zip);
+            else
+                contact.setZipcode("");
+        }
 
         //Only set the values if there is input
-        if(mStateEdit.getText().toString().length() != 0)
-            mContact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
+        boolean addressExists = false;
+        if(mAddressEdit.getText().toString().length() != 0) {
+            addressExists = true;
+            contact.setAddress(capitalizeFirstLetter(mAddressEdit.getText().toString()));
+        }
         else
-            mContact.setState("");
-        if(mCityEdit.getText().toString().length() != 0)
-            mContact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
-        else
-            mContact.setCity("");
-        if(mAddressEdit.getText().toString().length() != 0)
-            mContact.setAddress(capitalizeFirstLetter(mAddressEdit.getText().toString()));
-        else
-            mContact.setAddress("");
-        if(mEmailEdit.getText().toString().length() != 0)
-            mContact.setEmail(mEmailEdit.getText().toString());
-        else
-            mContact.setEmail("");
-        if(mNumberEdit.getText().toString().length() != 0)
-            mContact.setNumber(mNumberEdit.getText().toString());
-        else
-            mContact.setNumber("");
+            contact.setAddress("");
 
-        //Save contact in the background. (eventually as well in case of network failure)
-        mContact.saveEventually();
-        SharedPreferences prefs = getApplicationContext().getSharedPreferences("ADD_STATE", MODE_PRIVATE);
-        prefs.edit().putString("STATE", "MODIFIED").apply();
-        prefs.edit().putString("CONTACT", mContact.getObjectId()).apply();
-        createToast("Saved contact changes.");
-        mActivity.finish();
+        if(mStateEdit.getText().toString().length() != 0)
+            contact.setState(capitalizeFirstLetter(mStateEdit.getText().toString()));
+        else {
+            contact.setState("");
+            if(addressExists){
+                createToast("Please enter a city and state for this address");
+                return null;
+            }
+        }
+        if(mCityEdit.getText().toString().length() != 0)
+            contact.setCity(capitalizeFirstLetter(mCityEdit.getText().toString()));
+        else {
+            contact.setCity("");
+            if(addressExists){
+                createToast("Please enter a city and state for this address");
+                return null;
+            }
+        }
+
+        if(mEmailEdit.getText().toString().length() != 0)
+            contact.setEmail(mEmailEdit.getText().toString());
+        else
+            contact.setEmail("");
+        if(mNumberEdit.getText().toString().length() != 0)
+            contact.setNumber(mNumberEdit.getText().toString());
+        else
+            contact.setNumber("");
+
+        return contact;
     }
 
     /**

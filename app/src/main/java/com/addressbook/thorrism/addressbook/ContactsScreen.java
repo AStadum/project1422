@@ -40,8 +40,6 @@ import java.util.List;
 public class ContactsScreen extends Activity {
     private TextView mEmptyView;
     private AddressBook mBook;
-    private View mActiveContact;
-    private int mCurrentGroup;
     private String mBookId;
     private List<Contact> mContacts;
     private ProgressBar mContactSpinner;
@@ -53,6 +51,7 @@ public class ContactsScreen extends Activity {
     private HashMap<String, Contact> mContactData;
     private Vibrator mVibrator;
     private Comparator<Contact> mComparator;
+    private SharedPreferences mPrefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +70,7 @@ public class ContactsScreen extends Activity {
         mContactHeaders = new ArrayList<String>();
         mContactData    = new HashMap<String, Contact>();
         mVibrator       = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        mCurrentGroup = -1;
+        mPrefs          = getApplicationContext().getSharedPreferences("USER", MODE_PRIVATE);
         setComparator(2);
 
         //Set the action bar's icon to be the logo.
@@ -81,7 +80,6 @@ public class ContactsScreen extends Activity {
 
         //Initialize the Parse instance and fetch the user's contacts
         initParse();
-        new FetchBookTask().execute(mBookId);
     }
 
     /**
@@ -92,7 +90,12 @@ public class ContactsScreen extends Activity {
         ParseObject.registerSubclass(AddressBook.class);
         ParseObject.registerSubclass(Contact.class);
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12" );
+        mPrefs.edit().putString("FETCHED", "NOT DONE").apply();
+        if(!mPrefs.getString("FETCHED-CONTACT", "").equals("DONE")){
+            new FetchBookTask().execute(mBookId);
+        }
     }
+
 
     /**
      * Add the listeners for the contact's which are headers in the ExpandableListView. When a group
@@ -131,53 +134,57 @@ public class ContactsScreen extends Activity {
         @Override
         protected void onPreExecute(){
             mContactSpinner.setVisibility(View.VISIBLE);
+            mEmptyView.setVisibility(View.GONE);
         }
 
         @Override
         protected Boolean doInBackground(String... params){
-            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
-
-            if(bookQuery == null)
-                DroidBook.getInstance().close();
-            else
-                bookQuery.whereEqualTo("objectId", params[0]).fromLocalDatastore();
-
             try{
-                List<AddressBook> books = bookQuery.find();
-                ParseObject.pinAll(books);
-                mBook = books.get(0);
-                mContacts = mBook.getEntries();
-                mContactHeaders.clear();
-                mContactData.clear();
+                ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
+                if(bookQuery == null)
+                    DroidBook.getInstance().close();
+                else
+                    bookQuery.whereEqualTo("objectId", params[0]);
+                try{
+                    List<AddressBook> books = bookQuery.find();
+                    ParseObject.pinAll(books);
+                    mBook = books.get(0);
+                    mContacts = mBook.getEntries();
+                    mContactHeaders.clear();
+                    mContactData.clear();
 
-                //Fetch the contacts, must do to have a value for the contact
-                for(Contact contact: mContacts){
-                    try{
-                        contact.fetchFromLocalDatastore();
-                    }catch(ParseException e){
-                        e.printStackTrace();
-                        contact.fetchIfNeeded();
+                    //Fetch the contacts, must do to have a value for the contact
+                    for(Contact contact: mContacts){
+                        try{
+                            contact.fetchFromLocalDatastore();
+                        }catch(ParseException e){
+                            e.printStackTrace();
+                            contact.fetchIfNeeded();
+                        }
                     }
-                }
-                ParseObject.pinAll(mContacts);
+                    ParseObject.pinAll(mContacts);
 
-                //Attempt to sort the contacts list by first name
-                Collections.sort(mContacts, mComparator);
-                mBook.setEntries(mContacts);
+                    //Attempt to sort the contacts list by first name
+                    Collections.sort(mContacts, mComparator);
+                    mBook.setEntries(mContacts);
 
-                //For each contact, add their names to a new header
-                Contact contact;
-                for(int i=0; i<mContacts.size(); ++i){
-                    contact = mContacts.get(i);
-                    if(contact == null)
-                        Log.e(DroidBook.TAG, "*****NULL****");
-                    mContactHeaders.add(contact.getFirstName() + " " + contact.getLastName());
-                    mContactData.put(mContactHeaders.get(mContactData.size()), contact);
+                    //For each contact, add their names to a new header
+                    Contact contact;
+                    for(int i=0; i<mContacts.size(); ++i){
+                        contact = mContacts.get(i);
+                        mContactHeaders.add(contact.getFirstName() + " " + contact.getLastName());
+                        mContactData.put(mContactHeaders.get(mContactData.size()), contact);
+                    }
+                    return true;
+                }catch(ParseException e){
+                    e.printStackTrace();
+                    Log.e(DroidBook.TAG, "Error: " + e.getMessage());
                 }
-                return true;
-            }catch(ParseException e){
+            }catch(Exception e){
                 e.printStackTrace();
-                Log.e(DroidBook.TAG, "Error: " + e.getMessage());
+                mEmptyView.setVisibility(View.VISIBLE);
+                mContactSpinner.setVisibility(View.GONE);
+                this.cancel(true);
             }
 
             return false;
@@ -186,6 +193,7 @@ public class ContactsScreen extends Activity {
         @Override
         protected void onPostExecute(Boolean result){
             if(result){
+                mPrefs.edit().putString("FETCHED-CONTACT", "DONE").apply();
                 if(mContacts == null || mContacts.size() == 0){
                     mEmptyView.setVisibility(View.VISIBLE);
                 }else{
@@ -292,7 +300,7 @@ public class ContactsScreen extends Activity {
 
         @Override
         protected Void doInBackground(Void... params){
-            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class);
+            ParseQuery<AddressBook> bookQuery = ParseQuery.getQuery(AddressBook.class).fromLocalDatastore();
             bookQuery.whereEqualTo("objectId", mBookId);
 
             try{
@@ -345,7 +353,7 @@ public class ContactsScreen extends Activity {
             }catch(ParseException e){
                 e.printStackTrace();
             }
-
+            mPrefs.edit().putString("FETCHED-CONTACT", "DONE").apply();
             mContactSpinner.setVisibility(View.GONE);
         }
     }
@@ -356,6 +364,7 @@ public class ContactsScreen extends Activity {
      */
     public void displayList(){
         if(checkEmptyContacts()) mEmptyView.setVisibility(View.VISIBLE);
+        else mEmptyView.setVisibility(View.GONE);
         mAdapter = new ContactExpandableAdapter(this, mContactHeaders, mContactData);
         mExpandableView.setAdapter(mAdapter);
     }
@@ -407,7 +416,6 @@ public class ContactsScreen extends Activity {
                 }
             };
         }
-
         mComparator = result;
     }
 
@@ -588,8 +596,7 @@ public class ContactsScreen extends Activity {
      * and can select another address book to be active
      */
     public void returnUserToBooks(MenuItem item){
-        ParseObject.unpinAllInBackground(mContacts);
-        this.finish();
+        this.onBackPressed();
     }
 
     /**
@@ -608,7 +615,6 @@ public class ContactsScreen extends Activity {
             case R.id.action_options:
                 return true;
             default:
-
                 return super.onOptionsItemSelected(item);
         }
     }
@@ -637,6 +643,14 @@ public class ContactsScreen extends Activity {
         if(checkEmptyContacts()) createToast("No contacts found!");
         else {
             setComparator(0);
+            new SortContactsTask().execute();
+        }
+    }
+
+    public void sortByFirst(MenuItem i){
+        if(checkEmptyContacts()) createToast("No contacts found!");
+        else {
+            setComparator(2);
             new SortContactsTask().execute();
         }
     }
@@ -681,6 +695,7 @@ public class ContactsScreen extends Activity {
             //If we just updated, update the list view to display our changes.
             if(prefs.getString("STATE", "").equals("MODIFIED")) {
                 prefs.edit().putString("STATE", "UPDATED").apply();
+                Log.e(DroidBook.TAG, "UPDATING!!");
                 new UpdateContactTask().execute(prefs.getString("CONTACT", ""));
             }
         }
@@ -694,7 +709,7 @@ public class ContactsScreen extends Activity {
 
     @Override
     public void onStart(){
-        super.onStart();
+        super.onStart();        
         DroidBook.getInstance().contactScreenActivity = this;
     }
 
@@ -707,7 +722,7 @@ public class ContactsScreen extends Activity {
     /*Prevent the user from returning to the splash screen (it is done)*/
     @Override
     public void onBackPressed(){
-        ParseObject.unpinAllInBackground(mContacts);
+        mPrefs.edit().putString("FETCHED-CONTACT", "NOT DONE").apply();
         super.onBackPressed();
     }
 }
