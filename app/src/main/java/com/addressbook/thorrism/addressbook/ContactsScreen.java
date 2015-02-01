@@ -91,9 +91,7 @@ public class ContactsScreen extends Activity {
         ParseObject.registerSubclass(Contact.class);
         Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12" );
         mPrefs.edit().putString("FETCHED", "NOT DONE").apply();
-        if(!mPrefs.getString("FETCHED-CONTACT", "").equals("DONE")){
-            new FetchBookTask().execute(mBookId);
-        }
+        new FetchBookTask().execute(mBookId);
     }
 
 
@@ -184,6 +182,7 @@ public class ContactsScreen extends Activity {
                 e.printStackTrace();
                 mEmptyView.setVisibility(View.VISIBLE);
                 mContactSpinner.setVisibility(View.GONE);
+                onBackPressed();
                 this.cancel(true);
             }
 
@@ -709,7 +708,7 @@ public class ContactsScreen extends Activity {
 
     @Override
     public void onStart(){
-        super.onStart();        
+        super.onStart();
         DroidBook.getInstance().contactScreenActivity = this;
     }
 
@@ -717,6 +716,11 @@ public class ContactsScreen extends Activity {
     public void onDestroy(){
         super.onDestroy();
         DroidBook.getInstance().contactScreenActivity = null;
+        Log.e(DroidBook.TAG, "DESTROYED!!!");
+        if(!mPrefs.getString("FETCHED-CONTACT", "").equals("NOT DONE")){
+            DroidBook.getInstance().close();
+        }
+
     }
 
     /*Prevent the user from returning to the splash screen (it is done)*/

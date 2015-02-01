@@ -87,9 +87,7 @@ public class BookSelectionScreen extends Activity {
         mBooks = new ArrayList<AddressBook>();
 
         displayBooks();
-        if(!mPrefs.getString("FETCHED", "").equals("DONE")){
-            new QueryBooksTask().execute();
-        }
+        new QueryBooksTask().execute();
     }
 
     /**
@@ -179,6 +177,7 @@ public class BookSelectionScreen extends Activity {
                 }
             }catch(Exception e){
                 e.printStackTrace();
+                DroidBook.getInstance().close();
                 Log.e(DroidBook.TAG, "Failed to query user.");
                 return null;
             }
