@@ -33,7 +33,7 @@ public class SignupScreen extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.signup_screen);
-        Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
+        Parse.initialize(this, "###", "###");
 
         // Set up the login form.
         mEmailView = (TextView) findViewById(R.id.email);
