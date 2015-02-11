@@ -61,7 +61,7 @@ public class LoginScreen extends Activity {
         addForgotPasswordListener();
 
         //Initialize the parse database
-        Parse.initialize(this, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
+        Parse.initialize(this, "###", "###");
     }
 
 
