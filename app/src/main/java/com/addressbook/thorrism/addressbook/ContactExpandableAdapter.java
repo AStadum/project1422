@@ -49,7 +49,7 @@ public class ContactExpandableAdapter extends BaseExpandableListAdapter {
     public void initParse(){
         ParseObject.registerSubclass(AddressBook.class);
         ParseObject.registerSubclass(Contact.class);
-        Parse.initialize(context, "kpVXSqTA4cCxBYcDlcz1gGJKPZvMeofiKlWKzcV3", "T4FqPFp0ufX4qs8rIUDL8EX8RSluB0wGX51ZpL12");
+        Parse.initialize(context, "###", "###");
     }
 
     /**
